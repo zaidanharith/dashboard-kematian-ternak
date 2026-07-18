@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  PETUGAS
+
+  @@map("role")
+}
+
+enum JenisKelamin {
+  JANTAN
+  BETINA
+
+  @@map("jenis_kelamin")
+}
+
+enum StatusTernak {
+  HIDUP
+  MATI
+
+  @@map("status_ternak")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String
+  password  String?
+  googleId  String?  @unique @map("google_id")
+  avatarUrl String?  @map("avatar_url")
+  role      Role     @default(PETUGAS)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  laporanKematian LaporanKematian[]
+
+  @@map("users")
+}
+
+model Peternak {
+  id        String   @id @default(uuid()) @db.Uuid
+  nama      String
+  nik       String   @unique
+  alamat    String
+  telepon   String
+  dusun     String
+  rt        String
+  rw        String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ternak Ternak[]
+
+  @@map("peternak")
+}
+
+model JenisTernak {
+  id   String @id @default(uuid()) @db.Uuid
+  nama String @unique
+
+  ternak Ternak[]
+
+  @@map("jenis_ternak")
+}
+
+model Ternak {
+  id            String       @id @default(uuid()) @db.Uuid
+  kodeTernak    String       @unique @map("kode_ternak")
+  jenisTernakId String       @map("jenis_ternak_id") @db.Uuid
+  peternakId    String       @map("peternak_id") @db.Uuid
+  jenisKelamin  JenisKelamin @map("jenis_kelamin")
+  rasRumpun     String?      @map("ras_rumpun")
+  tanggalLahir  DateTime     @map("tanggal_lahir") @db.Date
+  status        StatusTernak @default(HIDUP)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  jenisTernak     JenisTernak       @relation(fields: [jenisTernakId], references: [id], onDelete: Restrict)
+  peternak        Peternak          @relation(fields: [peternakId], references: [id], onDelete: Cascade)
+  laporanKematian LaporanKematian[]
+
+  @@map("ternak")
+}
+
+model PenyebabKematian {
+  id   String @id @default(uuid()) @db.Uuid
+  nama String @unique
+
+  laporanKematian LaporanKematian[]
+
+  @@map("penyebab_kematian")
+}
+
+model LaporanKematian {
+  id                 String   @id @default(uuid()) @db.Uuid
+  ternakId           String   @map("ternak_id") @db.Uuid
+  penyebabKematianId String   @map("penyebab_kematian_id") @db.Uuid
+  petugasId          String   @map("petugas_id") @db.Uuid
+  tanggalKematian    DateTime @map("tanggal_kematian") @db.Date
+  catatan            String?
+  nomorBeritaAcara   String?  @map("nomor_berita_acara")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  ternak           Ternak           @relation(fields: [ternakId], references: [id], onDelete: Restrict)
+  penyebabKematian PenyebabKematian @relation(fields: [penyebabKematianId], references: [id], onDelete: Restrict)
+  petugas          User             @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+
+  @@map("laporan_kematian")
+}
