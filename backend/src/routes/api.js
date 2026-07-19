@@ -8,6 +8,8 @@ const ternakRoutes = require('./ternak.routes');
 const jenisTernakRoutes = require('./jenis-ternak.routes');
 const penyebabKematianRoutes = require('./penyebab-kematian.routes');
 const laporanKematianRoutes = require('./laporan-kematian.routes');
+const dashboardRoutes = require('./dashboard.routes');
+const analisisRoutes = require('./analisis.routes');
 
 router.get('/', (req, res) => {
   res.json({
@@ -45,6 +47,8 @@ router.get('/', (req, res) => {
         'POST /api/laporan-kematian',
         'PATCH /api/laporan-kematian/:id',
         'DELETE /api/laporan-kematian/:id',
+        'GET /api/dashboard/summary',
+        'GET /api/analisis/penyebab-kematian (?startDate&endDate)',
       ],
     },
   });
@@ -57,5 +61,7 @@ router.use('/ternak', ternakRoutes);
 router.use('/jenis-ternak', jenisTernakRoutes);
 router.use('/penyebab-kematian', penyebabKematianRoutes);
 router.use('/laporan-kematian', laporanKematianRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/analisis', analisisRoutes);
 
 module.exports = router;
