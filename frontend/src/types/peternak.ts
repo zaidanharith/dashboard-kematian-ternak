@@ -4,8 +4,8 @@ export interface Peternak {
   id: string;
   nama: string;
   nik: string;
-  alamat: string;
   telepon: string;
+  desa: string;
   dusun: string;
   rt: string;
   rw: string;

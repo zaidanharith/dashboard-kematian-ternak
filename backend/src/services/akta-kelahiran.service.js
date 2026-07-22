@@ -9,7 +9,7 @@ function getTemplatePath() {
     __dirname,
     '..',
     'templates',
-    process.env.BERITA_ACARA_TEMPLATE_NAME || 'berita-acara-kematian.docx',
+    process.env.AKTA_KELAHIRAN_TEMPLATE_NAME || 'akta-kelahiran.docx',
   );
 }
 
@@ -20,29 +20,12 @@ const NAMA_BULAN = [
 ];
 const BULAN_ROMAWI = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
-function hitungUmur(tanggalLahir, tanggalKematian) {
-  let bulan =
-    (tanggalKematian.getFullYear() - tanggalLahir.getFullYear()) * 12 +
-    (tanggalKematian.getMonth() - tanggalLahir.getMonth());
-
-  if (tanggalKematian.getDate() < tanggalLahir.getDate()) {
-    bulan -= 1;
-  }
-
-  const tahun = Math.floor(bulan / 12);
-  const sisaBulan = bulan % 12;
-
-  return { tahun, bulan: sisaBulan };
-}
-
-function buildBeritaAcaraData(laporan) {
-  const tanggalLahir = new Date(laporan.ternak.tanggalLahir);
-  const tanggalKematian = new Date(laporan.tanggalKematian);
+function buildAktaKelahiranData(laporan) {
+  const tanggalLahir = new Date(laporan.tanggalLahir);
   const tanggalDibuat = new Date(laporan.createdAt);
-  const umur = hitungUmur(tanggalLahir, tanggalKematian);
 
   return {
-    nomor_urut: laporan.nomorBeritaAcara || '______________',
+    nomor_urut: laporan.nomorAkta || '______________',
     bulan_romawi: BULAN_ROMAWI[tanggalDibuat.getMonth()],
     tahun_dibuat: String(tanggalDibuat.getFullYear()),
     hari_dibuat: NAMA_HARI[tanggalDibuat.getDay()],
@@ -55,26 +38,26 @@ function buildBeritaAcaraData(laporan) {
     kode_ternak: laporan.ternak.kodeTernak,
     jenis_kelamin_ternak: laporan.ternak.jenisKelamin === 'JANTAN' ? 'Jantan' : 'Betina',
     ras_rumpun: laporan.ternak.rasRumpun || '-',
-    umur_ternak: `${umur.tahun} tahun ${umur.bulan} bulan`,
-    penyebab_kematian: laporan.penyebabKematian.nama.toLowerCase(),
-    tanggal_kematian_angka: String(tanggalKematian.getDate()),
-    bulan_kematian: NAMA_BULAN[tanggalKematian.getMonth()],
-    tahun_kematian: String(tanggalKematian.getFullYear()),
+    tanggal_lahir_angka: String(tanggalLahir.getDate()),
+    bulan_lahir: NAMA_BULAN[tanggalLahir.getMonth()],
+    tahun_lahir: String(tanggalLahir.getFullYear()),
+    petugas_pencatat: laporan.petugas.name,
+    catatan: laporan.catatan || '-',
   };
 }
 
-function generateBeritaAcaraDocx(laporan) {
+function generateAktaKelahiranDocx(laporan) {
   const templatePath = getTemplatePath();
 
   if (!fs.existsSync(templatePath)) {
     const error = new Error(
-      `Template berita acara tidak ditemukan di ${templatePath}. Letakkan file .docx template di folder src/templates.`,
+      `Template akta kelahiran tidak ditemukan di ${templatePath}. Letakkan file .docx template di folder src/templates.`,
     );
     error.code = 'TEMPLATE_NOT_FOUND';
     throw error;
   }
 
-  const data = buildBeritaAcaraData(laporan);
+  const data = buildAktaKelahiranData(laporan);
 
   const content = fs.readFileSync(templatePath, 'binary');
   const zip = new PizZip(content);
@@ -88,8 +71,8 @@ function generateBeritaAcaraDocx(laporan) {
   return doc.getZip().generate({ type: 'nodebuffer' });
 }
 
-function generateBeritaAcaraPdf(laporan) {
-  const data = buildBeritaAcaraData(laporan);
+function generateAktaKelahiranPdf(laporan) {
+  const data = buildAktaKelahiranData(laporan);
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 56 });
@@ -99,19 +82,19 @@ function generateBeritaAcaraPdf(laporan) {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.font('Times-Bold').fontSize(14).text('BERITA ACARA KEMATIAN TERNAK', { align: 'center' });
+    doc.font('Times-Bold').fontSize(14).text('AKTA KELAHIRAN TERNAK', { align: 'center' });
     doc.moveDown(0.5);
     doc
       .font('Times-Italic')
       .fontSize(11)
-      .text(`Nomor : ${data.nomor_urut}/BUMDES-KETAPANG/${data.bulan_romawi}/${data.tahun_dibuat}`, {
+      .text(`Nomor : ${data.nomor_urut}/AK-LH/BUMDES-KETAPANG/${data.bulan_romawi}/${data.tahun_dibuat}`, {
         align: 'center',
       });
     doc.moveDown(1);
 
     doc.font('Times-Roman').fontSize(11);
     doc.text(
-      `Pada hari ini ${data.hari_dibuat}, tanggal ${data.tanggal_dibuat_angka} bulan ${data.bulan_dibuat} tahun ${data.tahun_dibuat}, yang bertanda tangan di bawah ini menerangkan bahwa ternak ${data.jenis_ternak} BUMDesa Sumber Abadi Unit Ketahanan Pangan Desa Besuki yang dikelola oleh :`,
+      `Pada hari ini ${data.hari_dibuat}, tanggal ${data.tanggal_dibuat_angka} bulan ${data.bulan_dibuat} tahun ${data.tahun_dibuat}, yang bertanda tangan di bawah ini menerangkan bahwa telah lahir ternak ${data.jenis_ternak} BUMDesa Sumber Abadi Unit Ketahanan Pangan Desa Besuki yang dikelola oleh :`,
       { align: 'justify' },
     );
     doc.moveDown(1);
@@ -126,18 +109,17 @@ function generateBeritaAcaraPdf(laporan) {
       `Jenis / Nomor Ternak : ${data.jenis_ternak} / ${data.kode_ternak}`,
       `Kelamin : ${data.jenis_kelamin_ternak}`,
       `Ras/Rumpun : ${data.ras_rumpun}`,
-      `Umur saat kejadian : ${data.umur_ternak}`,
     ]);
     doc.moveDown(1);
 
     doc.text(
-      `Bahwa ternak tersebut diatas telah mati karena ${data.penyebab_kematian} pada tanggal ${data.tanggal_kematian_angka} bulan ${data.bulan_kematian} tahun ${data.tahun_kematian}.`,
+      `Bahwa ternak tersebut diatas lahir pada tanggal ${data.tanggal_lahir_angka} bulan ${data.bulan_lahir} tahun ${data.tahun_lahir}, dicatat oleh petugas ${data.petugas_pencatat}.`,
       { align: 'justify' },
     );
     doc.moveDown(1);
 
     doc.text(
-      'Demikian Berita Acara ini dibuat dengan sebenar - benarnya untuk dapat dipergunakan sebagaimana mestinya.',
+      'Demikian Akta Kelahiran ini dibuat dengan sebenar - benarnya untuk dapat dipergunakan sebagaimana mestinya.',
       { align: 'justify' },
     );
     doc.moveDown(2);
@@ -162,4 +144,4 @@ function generateBeritaAcaraPdf(laporan) {
   });
 }
 
-module.exports = { generateBeritaAcaraDocx, generateBeritaAcaraPdf, buildBeritaAcaraData, hitungUmur };
+module.exports = { generateAktaKelahiranDocx, generateAktaKelahiranPdf, buildAktaKelahiranData };

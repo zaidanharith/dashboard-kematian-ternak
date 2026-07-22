@@ -1,6 +1,6 @@
 import { getServerApi } from "@/lib/api-server";
 import type { ApiEnvelope } from "@/types/api";
-import type { AnalisisPenyebab, DashboardSummary } from "@/types/dashboard";
+import type { AnalisisPenyebab, AnalisisPopulasi, DashboardSummary, LevelWilayah } from "@/types/dashboard";
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   const client = await getServerApi();
@@ -15,6 +15,19 @@ export async function getAnalisisPenyebab(params?: {
   const client = await getServerApi();
   const { data } = await client.get<ApiEnvelope<{ analisis: AnalisisPenyebab }>>(
     "/analisis/penyebab-kematian",
+    { params },
+  );
+  return data.data.analisis;
+}
+
+export async function getAnalisisPopulasi(params?: {
+  level?: LevelWilayah;
+  startDate?: string;
+  endDate?: string;
+}): Promise<AnalisisPopulasi> {
+  const client = await getServerApi();
+  const { data } = await client.get<ApiEnvelope<{ analisis: AnalisisPopulasi }>>(
+    "/analisis/populasi",
     { params },
   );
   return data.data.analisis;

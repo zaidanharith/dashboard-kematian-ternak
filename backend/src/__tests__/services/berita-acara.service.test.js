@@ -17,7 +17,7 @@ function buildLaporan(overrides = {}) {
       rasRumpun: 'Kambing Jawa',
       tanggalLahir: new Date('2023-03-10'),
       jenisTernak: { nama: 'Kambing' },
-      peternak: { nama: 'Pak Slamet', alamat: 'Jl. Mawar 1', dusun: 'Krajan', rt: '01', rw: '02' },
+      peternak: { nama: 'Pak Slamet', desa: 'Besuki', dusun: 'Krajan', rt: '01', rw: '02' },
     },
     penyebabKematian: { nama: 'Penyakit' },
     ...overrides,
@@ -63,6 +63,21 @@ describe('buildBeritaAcaraData', () => {
     const data = buildBeritaAcaraData(laporan);
 
     expect(data.ras_rumpun).toBe('-');
+  });
+
+  it('falls back to a blank underscore line when nomorBeritaAcara is not set', () => {
+    const laporan = buildLaporan();
+    laporan.nomorBeritaAcara = null;
+
+    const data = buildBeritaAcaraData(laporan);
+
+    expect(data.nomor_urut).toBe('______________');
+  });
+
+  it('includes desa in the formatted address', () => {
+    const data = buildBeritaAcaraData(buildLaporan());
+
+    expect(data.alamat_peternak).toBe('Desa Besuki, Dusun Krajan RT 01/RW 02');
   });
 
   it('maps BETINA jenisKelamin to "Betina"', () => {

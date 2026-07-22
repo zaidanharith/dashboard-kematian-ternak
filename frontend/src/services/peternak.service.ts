@@ -5,8 +5,8 @@ import type { Peternak } from "@/types/peternak";
 export interface PeternakInput {
   nama: string;
   nik: string;
-  alamat: string;
   telepon: string;
+  desa: string;
   dusun: string;
   rt: string;
   rw: string;

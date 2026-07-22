@@ -39,7 +39,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  laporanKematian LaporanKematian[]
+  laporanKematian  LaporanKematian[]
+  laporanKelahiran LaporanKelahiran[]
 
   @@map("users")
 }
@@ -48,8 +49,8 @@ model Peternak {
   id        String   @id @default(uuid()) @db.Uuid
   nama      String
   nik       String   @unique
-  alamat    String
   telepon   String
+  desa      String   @default("Besuki")
   dusun     String
   rt        String
   rw        String
@@ -82,9 +83,10 @@ model Ternak {
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @updatedAt @map("updated_at")
 
-  jenisTernak     JenisTernak       @relation(fields: [jenisTernakId], references: [id], onDelete: Restrict)
-  peternak        Peternak          @relation(fields: [peternakId], references: [id], onDelete: Cascade)
-  laporanKematian LaporanKematian[]
+  jenisTernak      JenisTernak        @relation(fields: [jenisTernakId], references: [id], onDelete: Restrict)
+  peternak         Peternak           @relation(fields: [peternakId], references: [id], onDelete: Cascade)
+  laporanKematian  LaporanKematian[]
+  laporanKelahiran LaporanKelahiran?
 
   @@map("ternak")
 }
@@ -114,4 +116,20 @@ model LaporanKematian {
   petugas          User             @relation(fields: [petugasId], references: [id], onDelete: Restrict)
 
   @@map("laporan_kematian")
+}
+
+model LaporanKelahiran {
+  id           String   @id @default(uuid()) @db.Uuid
+  ternakId     String   @unique @map("ternak_id") @db.Uuid
+  petugasId    String   @map("petugas_id") @db.Uuid
+  tanggalLahir DateTime @map("tanggal_lahir") @db.Date
+  catatan      String?
+  nomorAkta    String?  @map("nomor_akta")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  ternak  Ternak @relation(fields: [ternakId], references: [id], onDelete: Cascade)
+  petugas User   @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+
+  @@map("laporan_kelahiran")
 }

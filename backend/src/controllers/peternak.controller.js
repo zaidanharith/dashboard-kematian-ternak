@@ -65,17 +65,17 @@ exports.getPeternakById = async (req, res) => {
 
 exports.createPeternak = async (req, res) => {
   try {
-    const { nama, nik, alamat, telepon, dusun, rt, rw } = req.body;
+    const { nama, nik, telepon, desa, dusun, rt, rw } = req.body;
 
-    if (!nama || !nik || !alamat || !telepon || !dusun || !rt || !rw) {
+    if (!nama || !nik || !telepon || !desa || !dusun || !rt || !rw) {
       return res.status(400).json({
         success: false,
-        message: 'Nama, NIK, alamat, telepon, dusun, RT, dan RW wajib diisi.',
+        message: 'Nama, NIK, telepon, desa, dusun, RT, dan RW wajib diisi.',
       });
     }
 
     const peternak = await prisma.peternak.create({
-      data: { nama, nik, alamat, telepon, dusun, rt, rw },
+      data: { nama, nik, telepon, desa, dusun, rt, rw },
     });
 
     return res.status(201).json({
@@ -103,11 +103,11 @@ exports.createPeternak = async (req, res) => {
 exports.updatePeternak = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama, nik, alamat, telepon, dusun, rt, rw } = req.body;
+    const { nama, nik, telepon, desa, dusun, rt, rw } = req.body;
 
     const peternak = await prisma.peternak.update({
       where: { id },
-      data: { nama, nik, alamat, telepon, dusun, rt, rw },
+      data: { nama, nik, telepon, desa, dusun, rt, rw },
     });
 
     return res.status(200).json({

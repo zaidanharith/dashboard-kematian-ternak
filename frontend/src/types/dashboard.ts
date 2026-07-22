@@ -6,9 +6,10 @@ export interface PenyebabRingkas {
   jumlah: number;
 }
 
-export interface TrenPoint {
+export interface TrenPopulasiPoint {
   label: string;
-  jumlah: number;
+  lahir: number;
+  mati: number;
 }
 
 export interface DashboardSummary {
@@ -19,9 +20,32 @@ export interface DashboardSummary {
   ternakMati: number;
   laporanTahunIni: number;
   laporanBulanIni: number;
+  totalLaporanKelahiran: number;
+  laporanKelahiranTahunIni: number;
+  laporanKelahiranBulanIni: number;
   penyebabDominan: PenyebabRingkas[];
-  trenKematian: TrenPoint[];
+  trenPopulasi: TrenPopulasiPoint[];
   laporanTerbaru: LaporanKematian[];
+}
+
+export type LevelWilayah = "dusun" | "rt" | "rw";
+
+export interface WilayahPopulasi {
+  wilayah: { desa: string; dusun: string; rt: string | null; rw: string | null };
+  label: string;
+  jumlahPeternak: number;
+  populasi: number;
+  lahir: number;
+  mati: number;
+  pertumbuhanBersih: number;
+}
+
+export interface AnalisisPopulasi {
+  level: LevelWilayah;
+  totalPopulasi: number;
+  totalLahir: number;
+  totalMati: number;
+  wilayah: WilayahPopulasi[];
 }
 
 export interface AnalisisRankingItem {

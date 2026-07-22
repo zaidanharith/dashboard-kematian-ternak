@@ -13,6 +13,7 @@ export interface LaporanUpdateInput {
   penyebabKematianId: string;
   tanggalKematian: string;
   catatan?: string | null;
+  nomorBeritaAcara?: string | null;
 }
 
 export async function getLaporanList(params?: {

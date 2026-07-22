@@ -1,10 +1,10 @@
 import { FiDownload, FiFileText } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
-import type { LaporanKematian } from "@/types/laporan";
+import type { LaporanKelahiran } from "@/types/laporan";
 
-export function BeritaAcaraCard({ laporan }: { laporan: LaporanKematian }) {
-  const nomor = laporan.nomorBeritaAcara
-    ? `${laporan.nomorBeritaAcara}/BA-KT/DS-BSK/${new Date(laporan.createdAt).getFullYear()}`
+export function AktaCard({ laporan }: { laporan: LaporanKelahiran }) {
+  const nomor = laporan.nomorAkta
+    ? `${laporan.nomorAkta}/AK-LH/DS-BSK/${new Date(laporan.createdAt).getFullYear()}`
     : "Belum diterbitkan";
 
   return (
@@ -15,25 +15,25 @@ export function BeritaAcaraCard({ laporan }: { laporan: LaporanKematian }) {
             <FiFileText className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-sm text-muted-foreground">Berita Acara Kematian Ternak</p>
+            <p className="text-sm text-muted-foreground">Akta Kelahiran Ternak</p>
             <p className="font-mono text-sm font-medium tracking-tight">{nomor}</p>
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Nomor berita acara dikosongkan (garis bawah) di dokumen agar bisa ditulis tangan.
+          Nomor akta dikosongkan (garis bawah) di dokumen agar bisa ditulis tangan.
           Setelah ditulis, isi nomornya lewat halaman edit supaya tercatat di sistem.
         </p>
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button asChild className="sm:w-auto">
-            <a href={`/berita-acara/${laporan.id}?format=docx`} download>
+            <a href={`/akta-kelahiran/${laporan.id}?format=docx`} download>
               <FiDownload className="h-4 w-4" />
               Unduh Word (.docx)
             </a>
           </Button>
           <Button asChild variant="outline" className="sm:w-auto">
-            <a href={`/berita-acara/${laporan.id}?format=pdf`} download>
+            <a href={`/akta-kelahiran/${laporan.id}?format=pdf`} download>
               <FiDownload className="h-4 w-4" />
               Unduh PDF
             </a>

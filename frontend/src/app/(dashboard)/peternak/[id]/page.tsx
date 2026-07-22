@@ -55,7 +55,7 @@ export default async function DetailPeternakPage({
           <DescriptionList
             columns={3}
             items={[
-              { label: "Alamat", value: peternak.alamat },
+              { label: "Desa", value: peternak.desa },
               { label: "Dusun", value: peternak.dusun },
               { label: "RT / RW", value: `${peternak.rt} / ${peternak.rw}` },
               { label: "Telepon", value: peternak.telepon },

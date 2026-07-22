@@ -31,8 +31,8 @@ import type { Peternak } from "@/types/peternak";
 const schema = z.object({
   nama: z.string().min(1, "Nama wajib diisi"),
   nik: z.string().min(1, "NIK wajib diisi").regex(/^\d+$/, "NIK hanya boleh angka"),
-  alamat: z.string().min(1, "Alamat wajib diisi"),
   telepon: z.string().min(1, "Nomor telepon wajib diisi"),
+  desa: z.string().min(1, "Desa wajib diisi"),
   dusun: z.string().min(1, "Dusun wajib diisi"),
   rt: z.string().min(1, "RT wajib diisi"),
   rw: z.string().min(1, "RW wajib diisi"),
@@ -55,8 +55,8 @@ export function PeternakFormDialog({ trigger, peternak }: PeternakFormDialogProp
     defaultValues: {
       nama: peternak?.nama ?? "",
       nik: peternak?.nik ?? "",
-      alamat: peternak?.alamat ?? "",
       telepon: peternak?.telepon ?? "",
+      desa: peternak?.desa ?? "Besuki",
       dusun: peternak?.dusun ?? "",
       rt: peternak?.rt ?? "",
       rw: peternak?.rw ?? "",
@@ -125,12 +125,12 @@ export function PeternakFormDialog({ trigger, peternak }: PeternakFormDialogProp
             />
             <FormField
               control={form.control}
-              name="alamat"
+              name="telepon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alamat</FormLabel>
+                  <FormLabel>Telepon</FormLabel>
                   <FormControl>
-                    <Input placeholder="Alamat lengkap" {...field} />
+                    <Input inputMode="tel" placeholder="08xxxxxxxxxx" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,12 +139,12 @@ export function PeternakFormDialog({ trigger, peternak }: PeternakFormDialogProp
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
-                name="telepon"
+                name="desa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telepon</FormLabel>
+                    <FormLabel>Desa</FormLabel>
                     <FormControl>
-                      <Input inputMode="tel" placeholder="08xxxxxxxxxx" {...field} />
+                      <Input placeholder="Nama desa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

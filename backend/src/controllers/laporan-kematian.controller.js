@@ -139,7 +139,7 @@ exports.createLaporanKematian = async (req, res) => {
 exports.updateLaporanKematian = async (req, res) => {
   try {
     const { id } = req.params;
-    const { penyebabKematianId, tanggalKematian, catatan } = req.body;
+    const { penyebabKematianId, tanggalKematian, catatan, nomorBeritaAcara } = req.body;
 
     const laporan = await prisma.laporanKematian.update({
       where: { id },
@@ -147,6 +147,7 @@ exports.updateLaporanKematian = async (req, res) => {
         penyebabKematianId,
         tanggalKematian: tanggalKematian ? new Date(tanggalKematian) : undefined,
         catatan,
+        nomorBeritaAcara,
       },
       include: laporanInclude,
     });
@@ -177,7 +178,7 @@ exports.getBeritaAcara = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let laporan = await prisma.laporanKematian.findUnique({
+    const laporan = await prisma.laporanKematian.findUnique({
       where: { id },
       include: laporanInclude,
     });
@@ -186,27 +187,6 @@ exports.getBeritaAcara = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Laporan kematian tidak ditemukan.',
-      });
-    }
-
-    if (!laporan.nomorBeritaAcara) {
-      const tahunDibuat = laporan.createdAt.getFullYear();
-      const jumlahLaporanTahunIni = await prisma.laporanKematian.count({
-        where: {
-          nomorBeritaAcara: { not: null },
-          createdAt: {
-            gte: new Date(`${tahunDibuat}-01-01`),
-            lte: new Date(`${tahunDibuat}-12-31`),
-          },
-        },
-      });
-
-      const nomorBeritaAcara = String(jumlahLaporanTahunIni + 1).padStart(3, '0');
-
-      laporan = await prisma.laporanKematian.update({
-        where: { id },
-        data: { nomorBeritaAcara },
-        include: laporanInclude,
       });
     }
 

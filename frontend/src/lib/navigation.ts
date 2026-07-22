@@ -8,6 +8,8 @@ import {
   FiUserCheck,
   FiTag,
   FiActivity,
+  FiUserPlus,
+  FiMap,
 } from "react-icons/fi";
 import type { IconType } from "react-icons";
 
@@ -32,7 +34,9 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: FiHome, roles: SEMUA },
       { label: "Laporan Kematian", href: "/laporan", icon: FiFileText, roles: SEMUA },
+      { label: "Laporan Kelahiran", href: "/kelahiran", icon: FiUserPlus, roles: SEMUA },
       { label: "Analisis Penyebab", href: "/analisis", icon: FiPieChart, roles: SEMUA },
+      { label: "Populasi Wilayah", href: "/populasi", icon: FiMap, roles: SEMUA },
     ],
   },
   {

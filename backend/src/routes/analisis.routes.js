@@ -4,5 +4,6 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const analisisController = require('../controllers/analisis.controller');
 
 router.get('/penyebab-kematian', authMiddleware, analisisController.getAnalisisPenyebabKematian);
+router.get('/populasi', authMiddleware, analisisController.getAnalisisPopulasi);
 
 module.exports = router;

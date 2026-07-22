@@ -81,7 +81,7 @@ describe('createPeternak', () => {
 
   it('creates a peternak when all fields are present', async () => {
     const payload = {
-      nama: 'Pak Slamet', nik: '123', alamat: 'Jl. Mawar', telepon: '0812', dusun: 'Krajan', rt: '01', rw: '02',
+      nama: 'Pak Slamet', nik: '123', telepon: '0812', desa: 'Besuki', dusun: 'Krajan', rt: '01', rw: '02',
     };
     prisma.peternak.create.mockResolvedValue({ id: 'p1', ...payload });
     const req = { body: payload };
@@ -98,7 +98,7 @@ describe('createPeternak', () => {
     error.code = 'P2002';
     prisma.peternak.create.mockRejectedValue(error);
     const req = {
-      body: { nama: 'Pak Slamet', nik: '123', alamat: 'Jl. Mawar', telepon: '0812', dusun: 'Krajan', rt: '01', rw: '02' },
+      body: { nama: 'Pak Slamet', nik: '123', telepon: '0812', desa: 'Besuki', dusun: 'Krajan', rt: '01', rw: '02' },
     };
     const res = buildRes();
 

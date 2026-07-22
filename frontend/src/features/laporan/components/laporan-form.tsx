@@ -31,6 +31,7 @@ const schema = z.object({
   penyebabKematianId: z.string().min(1, "Penyebab kematian wajib dipilih"),
   tanggalKematian: z.string().min(1, "Tanggal kematian wajib diisi"),
   catatan: z.string().max(1000, "Catatan terlalu panjang").optional(),
+  nomorBeritaAcara: z.string().max(50, "Nomor terlalu panjang").optional(),
 });
 
 type LaporanValues = z.infer<typeof schema>;
@@ -67,6 +68,7 @@ export function LaporanForm({
       penyebabKematianId: defaultValues?.penyebabKematianId ?? "",
       tanggalKematian: defaultValues?.tanggalKematian ?? "",
       catatan: defaultValues?.catatan ?? "",
+      nomorBeritaAcara: defaultValues?.nomorBeritaAcara ?? "",
     },
   });
 
@@ -100,6 +102,7 @@ export function LaporanForm({
       penyebabKematianId: values.penyebabKematianId,
       tanggalKematian: values.tanggalKematian,
       catatan: values.catatan || null,
+      nomorBeritaAcara: values.nomorBeritaAcara || null,
     });
     if (result.error) {
       setServerError(result.error);
@@ -207,6 +210,25 @@ export function LaporanForm({
             </FormItem>
           )}
         />
+
+        {mode === "edit" ? (
+          <FormField
+            control={form.control}
+            name="nomorBeritaAcara"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nomor Berita Acara (opsional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="mis. 007" {...field} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Isi setelah nomor ditulis tangan di dokumen cetak, agar tercatat di sistem.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
 
         {serverError ? (
           <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">

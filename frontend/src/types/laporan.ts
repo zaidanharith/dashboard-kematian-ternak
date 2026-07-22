@@ -16,3 +16,16 @@ export interface LaporanKematian {
   penyebabKematian?: PenyebabKematian;
   petugas?: User;
 }
+
+export interface LaporanKelahiran {
+  id: string;
+  ternakId: string;
+  petugasId: string;
+  tanggalLahir: string;
+  catatan: string | null;
+  nomorAkta: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ternak?: Ternak;
+  petugas?: User;
+}

@@ -8,6 +8,7 @@ const ternakRoutes = require('./ternak.routes');
 const jenisTernakRoutes = require('./jenis-ternak.routes');
 const penyebabKematianRoutes = require('./penyebab-kematian.routes');
 const laporanKematianRoutes = require('./laporan-kematian.routes');
+const laporanKelahiranRoutes = require('./laporan-kelahiran.routes');
 const dashboardRoutes = require('./dashboard.routes');
 const analisisRoutes = require('./analisis.routes');
 
@@ -47,8 +48,15 @@ router.get('/', (req, res) => {
         'POST /api/laporan-kematian',
         'PATCH /api/laporan-kematian/:id',
         'DELETE /api/laporan-kematian/:id',
+        'GET /api/laporan-kelahiran',
+        'GET /api/laporan-kelahiran/:id',
+        'GET /api/laporan-kelahiran/:id/akta (?format=docx|pdf)',
+        'POST /api/laporan-kelahiran',
+        'PATCH /api/laporan-kelahiran/:id',
+        'DELETE /api/laporan-kelahiran/:id',
         'GET /api/dashboard/summary',
         'GET /api/analisis/penyebab-kematian (?startDate&endDate)',
+        'GET /api/analisis/populasi (?level=dusun|rt|rw&startDate&endDate)',
       ],
     },
   });
@@ -61,6 +69,7 @@ router.use('/ternak', ternakRoutes);
 router.use('/jenis-ternak', jenisTernakRoutes);
 router.use('/penyebab-kematian', penyebabKematianRoutes);
 router.use('/laporan-kematian', laporanKematianRoutes);
+router.use('/laporan-kelahiran', laporanKelahiranRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/analisis', analisisRoutes);
 

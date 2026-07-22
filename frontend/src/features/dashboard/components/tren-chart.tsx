@@ -4,14 +4,15 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import type { TrenPoint } from "@/types/dashboard";
+import type { TrenPopulasiPoint } from "@/types/dashboard";
 
-export function TrenChart({ data }: { data: TrenPoint[] }) {
+export function TrenChart({ data }: { data: TrenPopulasiPoint[] }) {
   const compact = data.map((point) => ({
     ...point,
     short: point.label.replace(/ \d{4}$/, ""),
@@ -44,9 +45,10 @@ export function TrenChart({ data }: { data: TrenPoint[] }) {
             fontSize: "0.8rem",
           }}
           labelFormatter={(_, payload) => payload?.[0]?.payload?.label ?? ""}
-          formatter={(value) => [`${value} laporan`, "Kematian"]}
         />
-        <Bar dataKey="jumlah" fill="var(--chart-1)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+        <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
+        <Bar dataKey="lahir" name="Lahir" fill="var(--chart-2)" radius={[6, 6, 0, 0]} maxBarSize={18} />
+        <Bar dataKey="mati" name="Mati" fill="var(--chart-1)" radius={[6, 6, 0, 0]} maxBarSize={18} />
       </BarChart>
     </ResponsiveContainer>
   );

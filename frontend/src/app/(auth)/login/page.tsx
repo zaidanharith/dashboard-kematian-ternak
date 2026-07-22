@@ -8,25 +8,16 @@ export const metadata: Metadata = {
 };
 
 const SOROTAN = [
-  "Pencatatan laporan kematian ternak",
-  "Berita acara otomatis siap unduh",
-  "Analisis penyebab kematian dominan",
+  "Catat kelahiran dan kematian ternak",
+  "Berita acara & akta otomatis siap unduh",
+  "Lihat populasi ternak per dusun, RT, dan RW",
 ];
 
 export default function LoginPage() {
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <section className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-sidebar-primary/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-secondary/10 blur-3xl"
-        />
-
-        <div className="relative flex items-center gap-3">
+      <section className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
+        <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white p-1.5 shadow-sm">
             <Image
               src="/logo-bumdes.png"
@@ -42,9 +33,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative space-y-6">
+        <div className="space-y-6">
           <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Catat kematian ternak desa dengan rapi dan resmi.
+            Catat data ternak desa dengan rapi dan resmi.
           </h1>
           <ul className="space-y-3">
             {SOROTAN.map((item) => (
@@ -56,7 +47,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-sidebar-foreground/60">
+        <p className="text-xs text-sidebar-foreground/60">
           BUMDes Sumber Abadi · Desa Besuki
         </p>
       </section>
@@ -81,7 +72,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <h2 className="text-2xl font-semibold tracking-tight">Selamat datang kembali</h2>
             <p className="text-sm text-muted-foreground">
-              Masuk untuk mengelola data kematian ternak desa.
+              Masuk untuk mengelola data ternak desa.
             </p>
           </div>
           <LoginForm />

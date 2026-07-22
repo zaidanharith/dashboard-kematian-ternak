@@ -5,25 +5,21 @@ import { FiArrowLeft } from "react-icons/fi";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LaporanForm } from "@/features/laporan/components/laporan-form";
-import { getLaporanById } from "@/services/laporan.service";
-import { getPenyebabKematianList } from "@/services/master.service";
+import { KelahiranForm } from "@/features/kelahiran/components/kelahiran-form";
+import { getKelahiranById } from "@/services/kelahiran.service";
 import { toDateInputValue } from "@/utils/format";
 
 export const metadata: Metadata = {
-  title: "Edit Laporan Kematian",
+  title: "Edit Laporan Kelahiran",
 };
 
-export default async function EditLaporanPage({
+export default async function EditKelahiranPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [laporan, penyebabList] = await Promise.all([
-    getLaporanById(id).catch(() => null),
-    getPenyebabKematianList(),
-  ]);
+  const laporan = await getKelahiranById(id).catch(() => null);
 
   if (!laporan) notFound();
 
@@ -33,26 +29,24 @@ export default async function EditLaporanPage({
     <>
       <div>
         <Button asChild variant="ghost" size="sm" className="mb-2 -ml-2 text-muted-foreground">
-          <Link href={`/laporan/${laporan.id}`}>
+          <Link href={`/kelahiran/${laporan.id}`}>
             <FiArrowLeft className="h-4 w-4" />
             Kembali
           </Link>
         </Button>
-        <PageHeader title="Edit Laporan Kematian" description="Perbarui penyebab, tanggal, atau catatan." />
+        <PageHeader title="Edit Laporan Kelahiran" description="Perbarui tanggal lahir, catatan, atau nomor akta." />
       </div>
 
       <Card className="max-w-2xl">
         <CardContent>
-          <LaporanForm
+          <KelahiranForm
             mode="edit"
             laporanId={laporan.id}
-            penyebabOptions={penyebabList}
             ternakLabel={ternakLabel}
             defaultValues={{
-              penyebabKematianId: laporan.penyebabKematianId,
-              tanggalKematian: toDateInputValue(laporan.tanggalKematian),
+              tanggalLahir: toDateInputValue(laporan.tanggalLahir),
               catatan: laporan.catatan ?? "",
-              nomorBeritaAcara: laporan.nomorBeritaAcara ?? "",
+              nomorAkta: laporan.nomorAkta ?? "",
             }}
           />
         </CardContent>

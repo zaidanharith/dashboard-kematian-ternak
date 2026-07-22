@@ -5,8 +5,8 @@ import {
   FiUsers,
   FiPlus,
   FiActivity,
-  FiAlertTriangle,
   FiHeart,
+  FiUserPlus,
 } from "react-icons/fi";
 import { PageHeader } from "@/components/common/page-header";
 import { StatCard } from "@/components/common/stat-card";
@@ -38,60 +38,64 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const summary = await getDashboardSummary();
-  const penyebabTeratas = summary.penyebabDominan[0];
   const maksPenyebab = summary.penyebabDominan[0]?.jumlah ?? 0;
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        description="Ringkasan pencatatan kematian ternak Desa Besuki."
+        description="Ringkasan populasi, kelahiran, dan kematian ternak Desa Besuki."
       >
+        <Button asChild variant="outline">
+          <Link href="/kelahiran/baru">
+            <FiPlus className="h-4 w-4" />
+            Catat Kelahiran
+          </Link>
+        </Button>
         <Button asChild>
           <Link href="/laporan/baru">
             <FiPlus className="h-4 w-4" />
-            Buat Laporan
+            Catat Kematian
           </Link>
         </Button>
       </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Total Laporan"
-          value={summary.totalLaporan}
-          icon={FiFileText}
-          tone="primary"
-          hint={`${summary.laporanBulanIni} laporan bulan ini`}
-        />
-        <StatCard
-          label="Peternak Terdaftar"
-          value={summary.totalPeternak}
-          icon={FiUsers}
-          hint={`${summary.totalTernak} ekor ternak tercatat`}
-        />
-        <StatCard
-          label="Ternak Hidup"
+          label="Populasi Ternak"
           value={summary.ternakHidup}
           icon={FiHeart}
           tone="secondary"
         />
         <StatCard
-          label="Ternak Mati"
-          value={summary.ternakMati}
-          icon={FiAlertTriangle}
+          label="Peternak Terdaftar"
+          value={summary.totalPeternak}
+          icon={FiUsers}
+        />
+        <StatCard
+          label="Kelahiran Tahun Ini"
+          value={summary.laporanKelahiranTahunIni}
+          icon={FiUserPlus}
+          tone="primary"
+          hint={`${summary.laporanKelahiranBulanIni} laporan bulan ini`}
+        />
+        <StatCard
+          label="Kematian Tahun Ini"
+          value={summary.laporanTahunIni}
+          icon={FiFileText}
           tone="destructive"
-          hint={penyebabTeratas ? `Terbanyak: ${penyebabTeratas.nama}` : undefined}
+          hint={`${summary.laporanBulanIni} laporan bulan ini`}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Tren Kematian 12 Bulan Terakhir</CardTitle>
-            <CardDescription>Jumlah laporan kematian ternak per bulan.</CardDescription>
+            <CardTitle>Tren Populasi 12 Bulan Terakhir</CardTitle>
+            <CardDescription>Jumlah kelahiran vs kematian ternak per bulan.</CardDescription>
           </CardHeader>
           <CardContent>
-            <TrenChart data={summary.trenKematian} />
+            <TrenChart data={summary.trenPopulasi} />
           </CardContent>
         </Card>
 

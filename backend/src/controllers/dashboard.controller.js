@@ -16,8 +16,12 @@ exports.getSummary = async (req, res) => {
       ternakMati,
       laporanTahunIni,
       laporanBulanIni,
+      totalLaporanKelahiran,
+      laporanKelahiranTahunIni,
+      laporanKelahiranBulanIni,
       penyebabGroup,
-      laporanTren,
+      kematianTren,
+      kelahiranTren,
       laporanTerbaru,
     ] = await Promise.all([
       prisma.laporanKematian.count(),
@@ -26,6 +30,9 @@ exports.getSummary = async (req, res) => {
       prisma.ternak.count({ where: { status: 'MATI' } }),
       prisma.laporanKematian.count({ where: { tanggalKematian: { gte: awalTahun } } }),
       prisma.laporanKematian.count({ where: { tanggalKematian: { gte: awalBulan } } }),
+      prisma.laporanKelahiran.count(),
+      prisma.laporanKelahiran.count({ where: { tanggalLahir: { gte: awalTahun } } }),
+      prisma.laporanKelahiran.count({ where: { tanggalLahir: { gte: awalBulan } } }),
       prisma.laporanKematian.groupBy({
         by: ['penyebabKematianId'],
         _count: { penyebabKematianId: true },
@@ -35,6 +42,10 @@ exports.getSummary = async (req, res) => {
       prisma.laporanKematian.findMany({
         where: { tanggalKematian: { gte: mulaiTren } },
         select: { tanggalKematian: true },
+      }),
+      prisma.laporanKelahiran.findMany({
+        where: { tanggalLahir: { gte: mulaiTren } },
+        select: { tanggalLahir: true },
       }),
       prisma.laporanKematian.findMany({
         take: 5,
@@ -62,14 +73,19 @@ exports.getSummary = async (req, res) => {
     for (let i = 0; i < 12; i += 1) {
       const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
-      trenMap.set(key, { label: `${BULAN_SINGKAT[d.getMonth()]} ${d.getFullYear()}`, jumlah: 0 });
+      trenMap.set(key, { label: `${BULAN_SINGKAT[d.getMonth()]} ${d.getFullYear()}`, lahir: 0, mati: 0 });
     }
-    for (const laporan of laporanTren) {
+    for (const laporan of kematianTren) {
       const d = new Date(laporan.tanggalKematian);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
-      if (trenMap.has(key)) trenMap.get(key).jumlah += 1;
+      if (trenMap.has(key)) trenMap.get(key).mati += 1;
     }
-    const trenKematian = Array.from(trenMap.values());
+    for (const laporan of kelahiranTren) {
+      const d = new Date(laporan.tanggalLahir);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (trenMap.has(key)) trenMap.get(key).lahir += 1;
+    }
+    const trenPopulasi = Array.from(trenMap.values());
 
     return res.status(200).json({
       success: true,
@@ -83,8 +99,11 @@ exports.getSummary = async (req, res) => {
           ternakMati,
           laporanTahunIni,
           laporanBulanIni,
+          totalLaporanKelahiran,
+          laporanKelahiranTahunIni,
+          laporanKelahiranBulanIni,
           penyebabDominan,
-          trenKematian,
+          trenPopulasi,
           laporanTerbaru,
         },
       },

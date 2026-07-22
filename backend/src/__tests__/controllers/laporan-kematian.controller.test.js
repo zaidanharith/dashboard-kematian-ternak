@@ -100,6 +100,24 @@ describe('createLaporanKematian', () => {
   });
 });
 
+describe('updateLaporanKematian', () => {
+  it('allows petugas to manually fill in nomorBeritaAcara', async () => {
+    prisma.laporanKematian.update.mockResolvedValue({ id: 'laporan-1', nomorBeritaAcara: '007' });
+    const req = {
+      params: { id: 'laporan-1' },
+      body: { penyebabKematianId: 'penyebab-1', tanggalKematian: '2026-07-15', catatan: null, nomorBeritaAcara: '007' },
+    };
+    const res = buildRes();
+
+    await laporanKematianController.updateLaporanKematian(req, res);
+
+    expect(prisma.laporanKematian.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ nomorBeritaAcara: '007' }) }),
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+});
+
 describe('getBeritaAcara', () => {
   const laporan = {
     id: 'laporan-1',
@@ -118,10 +136,8 @@ describe('getBeritaAcara', () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
-  it('auto-generates nomorBeritaAcara when not already set', async () => {
+  it('does not auto-generate nomorBeritaAcara when it is not set', async () => {
     prisma.laporanKematian.findUnique.mockResolvedValue({ ...laporan, nomorBeritaAcara: null });
-    prisma.laporanKematian.count.mockResolvedValue(4);
-    prisma.laporanKematian.update.mockResolvedValue({ ...laporan, nomorBeritaAcara: '005' });
     generateBeritaAcaraDocx.mockReturnValue(Buffer.from('docx'));
 
     const req = { params: { id: 'laporan-1' }, query: {} };
@@ -129,9 +145,7 @@ describe('getBeritaAcara', () => {
 
     await laporanKematianController.getBeritaAcara(req, res);
 
-    expect(prisma.laporanKematian.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { nomorBeritaAcara: '005' } }),
-    );
+    expect(prisma.laporanKematian.update).not.toHaveBeenCalled();
     expect(res.send).toHaveBeenCalledWith(Buffer.from('docx'));
   });
 
