@@ -39,7 +39,7 @@ export default async function KelahiranPage() {
 
       {laporanList.length === 0 ? (
         <EmptyState
-          icon={FiFileText}
+          icon={<FiFileText className="h-6 w-6" />}
           title="Belum ada laporan kelahiran"
           description="Mulai catat kelahiran ternak untuk menghitung pertumbuhan populasi."
         >

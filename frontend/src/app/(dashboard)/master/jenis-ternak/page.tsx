@@ -25,7 +25,7 @@ export default async function JenisTernakPage() {
       <MasterManager
         items={jenisList}
         singular="Jenis Ternak"
-        icon={FiTag}
+        icon={<FiTag className="h-6 w-6" />}
         createAction={createJenisTernakAction}
         updateAction={updateJenisTernakAction}
         deleteAction={deleteJenisTernakAction}

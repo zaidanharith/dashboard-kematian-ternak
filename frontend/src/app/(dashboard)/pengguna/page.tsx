@@ -39,7 +39,7 @@ export default async function PenggunaPage() {
       </PageHeader>
 
       {users.length === 0 ? (
-        <EmptyState icon={FiUserCheck} title="Belum ada akun terdaftar" />
+        <EmptyState icon={<FiUserCheck className="h-6 w-6" />} title="Belum ada akun terdaftar" />
       ) : (
         <Card>
           <CardContent className="p-0">

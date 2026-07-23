@@ -89,7 +89,7 @@ export default async function TernakPage({
 
       {ternakList.length === 0 ? (
         <EmptyState
-          icon={FiDatabase}
+          icon={<FiDatabase className="h-6 w-6" />}
           title="Belum ada ternak"
           description="Tambahkan data ternak milik peternak untuk mulai mencatat."
         />

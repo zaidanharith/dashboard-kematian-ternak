@@ -106,7 +106,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {summary.penyebabDominan.length === 0 ? (
-              <EmptyState icon={FiActivity} title="Belum ada data penyebab." />
+              <EmptyState icon={<FiActivity className="h-6 w-6" />} title="Belum ada data penyebab." />
             ) : (
               <ul className="space-y-4">
                 {summary.penyebabDominan.map((penyebab) => (
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
         <CardContent>
           {summary.laporanTerbaru.length === 0 ? (
             <EmptyState
-              icon={FiFileText}
+              icon={<FiFileText className="h-6 w-6" />}
               title="Belum ada laporan kematian."
               description="Laporan yang Anda buat akan muncul di sini."
             />

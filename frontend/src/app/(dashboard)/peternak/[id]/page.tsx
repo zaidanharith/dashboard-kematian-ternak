@@ -71,7 +71,7 @@ export default async function DetailPeternakPage({
         </CardHeader>
         <CardContent className={ternakList.length === 0 ? undefined : "p-0"}>
           {ternakList.length === 0 ? (
-            <EmptyState icon={FiDatabase} title="Belum ada ternak terdaftar." />
+            <EmptyState icon={<FiDatabase className="h-6 w-6" />} title="Belum ada ternak terdaftar." />
           ) : (
             <div className="overflow-x-auto">
               <Table>

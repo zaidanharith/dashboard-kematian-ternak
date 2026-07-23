@@ -25,7 +25,7 @@ export default async function PenyebabKematianPage() {
       <MasterManager
         items={penyebabList}
         singular="Penyebab Kematian"
-        icon={FiActivity}
+        icon={<FiActivity className="h-6 w-6" />}
         createAction={createPenyebabKematianAction}
         updateAction={updatePenyebabKematianAction}
         deleteAction={deletePenyebabKematianAction}

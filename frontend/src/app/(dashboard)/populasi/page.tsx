@@ -46,7 +46,7 @@ export default async function PopulasiPage({
 
       {analisis.wilayah.length === 0 ? (
         <EmptyState
-          icon={FiMap}
+          icon={<FiMap className="h-6 w-6" />}
           title="Belum ada data wilayah"
           description="Tambahkan data peternak untuk mulai menghitung populasi per wilayah."
         />

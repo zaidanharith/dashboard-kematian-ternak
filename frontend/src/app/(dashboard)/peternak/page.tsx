@@ -57,7 +57,7 @@ export default async function PeternakPage({
 
       {peternakList.length === 0 ? (
         <EmptyState
-          icon={FiUsers}
+          icon={<FiUsers className="h-6 w-6" />}
           title={search ? "Peternak tidak ditemukan" : "Belum ada peternak"}
           description={
             search

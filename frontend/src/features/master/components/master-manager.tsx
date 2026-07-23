@@ -26,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ActionResult } from "@/types/action";
-import type { IconType } from "react-icons";
 
 interface MasterItem {
   id: string;
@@ -36,7 +35,7 @@ interface MasterItem {
 interface MasterManagerProps {
   items: MasterItem[];
   singular: string;
-  icon: IconType;
+  icon: React.ReactNode;
   createAction: (nama: string) => Promise<ActionResult>;
   updateAction: (id: string, nama: string) => Promise<ActionResult>;
   deleteAction: (id: string) => Promise<ActionResult>;
@@ -45,7 +44,7 @@ interface MasterManagerProps {
 export function MasterManager({
   items,
   singular,
-  icon: Icon,
+  icon,
   createAction,
   updateAction,
   deleteAction,
@@ -99,7 +98,7 @@ export function MasterManager({
       </div>
 
       {items.length === 0 ? (
-        <EmptyState icon={Icon} title={`Belum ada ${singular.toLowerCase()}`} />
+        <EmptyState icon={icon} title={`Belum ada ${singular.toLowerCase()}`} />
       ) : (
         <Card>
           <CardContent className="p-0">

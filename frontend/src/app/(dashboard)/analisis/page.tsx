@@ -45,7 +45,7 @@ export default async function AnalisisPage({
 
       {analisis.ranking.length === 0 ? (
         <EmptyState
-          icon={FiPieChart}
+          icon={<FiPieChart className="h-6 w-6" />}
           title="Belum ada data untuk dianalisis"
           description="Belum ada laporan kematian pada rentang waktu yang dipilih."
         />

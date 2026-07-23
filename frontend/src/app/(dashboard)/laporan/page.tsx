@@ -39,7 +39,7 @@ export default async function LaporanPage() {
 
       {laporanList.length === 0 ? (
         <EmptyState
-          icon={FiFileText}
+          icon={<FiFileText className="h-6 w-6" />}
           title="Belum ada laporan kematian"
           description="Mulai catat kematian ternak untuk menghasilkan berita acara otomatis."
         >
