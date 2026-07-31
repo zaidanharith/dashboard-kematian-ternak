@@ -1,4 +1,5 @@
 const prisma = require('../database/connections/prisma_client');
+const { getNamaPenyebabById } = require('../services/penyebab-kematian.service');
 
 const BULAN_SINGKAT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -58,10 +59,7 @@ exports.getSummary = async (req, res) => {
     ]);
 
     const penyebabIds = penyebabGroup.map((item) => item.penyebabKematianId);
-    const penyebabList = penyebabIds.length
-      ? await prisma.penyebabKematian.findMany({ where: { id: { in: penyebabIds } } })
-      : [];
-    const penyebabNamaById = Object.fromEntries(penyebabList.map((p) => [p.id, p.nama]));
+    const penyebabNamaById = await getNamaPenyebabById(penyebabIds);
 
     const penyebabDominan = penyebabGroup.map((item) => ({
       id: item.penyebabKematianId,

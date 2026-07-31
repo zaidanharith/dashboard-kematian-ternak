@@ -1,4 +1,5 @@
 const prisma = require('../database/connections/prisma_client');
+const { getNamaPenyebabById } = require('../services/penyebab-kematian.service');
 
 exports.getAnalisisPenyebabKematian = async (req, res) => {
   try {
@@ -27,10 +28,7 @@ exports.getAnalisisPenyebabKematian = async (req, res) => {
     ]);
 
     const penyebabIds = penyebabGroup.map((item) => item.penyebabKematianId);
-    const penyebabList = penyebabIds.length
-      ? await prisma.penyebabKematian.findMany({ where: { id: { in: penyebabIds } } })
-      : [];
-    const penyebabNamaById = Object.fromEntries(penyebabList.map((p) => [p.id, p.nama]));
+    const penyebabNamaById = await getNamaPenyebabById(penyebabIds);
 
     const jenisPerPenyebab = new Map();
     for (const item of laporan) {
