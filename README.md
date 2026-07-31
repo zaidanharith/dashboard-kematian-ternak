@@ -4,14 +4,36 @@ Website untuk pencatatan kematian dan kelahiran hewan ternak di tingkat desa, di
 
 ## Fitur
 
-- **Pencatatan laporan kematian ternak** — catat ternak yang mati, peternak pemilik, tanggal, dan penyebab kematian. Status ternak otomatis berubah menjadi `MATI`.
-- **Pencatatan laporan kelahiran ternak** — daftarkan ternak baru sekaligus laporan kelahirannya dalam satu alur.
-- **Generate dokumen otomatis** — Berita Acara Kematian dan Akta Kelahiran Ternak dibuat otomatis dari data laporan, tersedia dalam format `.docx` (dari template) maupun `.pdf`, siap diunduh.
+**Pencatatan & data master**
+
+- **Laporan kematian ternak** — catat ternak yang mati, peternak pemilik, tanggal, dan penyebab kematian. Status ternak otomatis berubah menjadi `MATI`.
+- **Laporan kelahiran ternak** — daftarkan ternak baru sekaligus laporan kelahirannya dalam satu alur.
 - **Data peternak & ternak** — daftar peternak beserta ternak yang dimiliki masing-masing, lengkap dengan alamat terstruktur (desa/dusun/RT/RW).
+- **Data master** — kelola referensi jenis ternak dan penyebab kematian.
+
+**Dokumen & pelaporan**
+
+- **Generate dokumen otomatis** — Berita Acara Kematian dan Akta Kelahiran Ternak dibuat otomatis dari data laporan, tersedia dalam format `.docx` (dari template) maupun `.pdf`, siap diunduh.
 - **Analisis penyebab kematian** — rekap & ranking penyebab kematian paling sering terjadi, dengan breakdown per jenis ternak, bisa difilter rentang tanggal.
 - **Analisis populasi wilayah** — statistik populasi ternak, kelahiran, kematian, dan pertumbuhan bersih per dusun/RT/RW.
 - **Dashboard ringkasan** — landing page setelah login: total laporan, populasi ternak hidup/mati, tren 12 bulan terakhir, penyebab kematian dominan, laporan terbaru.
-- **Autentikasi & role** — login email/password atau Google OAuth, tiga role (`SUPERADMIN`, `ADMIN`, `PETUGAS`) dengan hak akses berbeda; tidak ada registrasi publik.
+
+**Akun & akses**
+
+- **Autentikasi** — login email/password atau Google OAuth, sesi berbasis JWT (cookie httpOnly).
+- **Role-based access** — tiga peran dengan hak akses berbeda (lihat tabel di bawah), tidak ada registrasi publik.
+
+### Role & hak akses
+
+| Aksi | `PETUGAS` | `ADMIN` | `SUPERADMIN` |
+|---|:---:|:---:|:---:|
+| Login & lihat dashboard/analisis | ✅ | ✅ | ✅ |
+| Catat/ubah peternak, ternak, laporan kematian & kelahiran | ✅ | ✅ | ✅ |
+| Hapus laporan kematian/kelahiran | ❌ | ✅ | ✅ |
+| Kelola data master (jenis ternak, penyebab kematian) | ❌ | ✅ | ✅ |
+| Kelola akun (`ADMIN`/`PETUGAS`) | ❌ | ❌ | ✅ |
+
+Akun baru hanya bisa dibuat oleh `SUPERADMIN` lewat `POST /api/users` — lihat [docs/api/users.md](./docs/api/users.md).
 
 ## Tech Stack
 
@@ -62,6 +84,20 @@ npm run dev
 
 Frontend berjalan di `http://localhost:3000`, backend di `http://localhost:5000` (bisa diubah lewat `PORT`). Panduan instalasi lengkap: [docs/setup/installation.md](./docs/setup/installation.md).
 
+### Script yang tersedia
+
+| Lokasi | Script | Keterangan |
+|---|---|---|
+| root | `npm run dev` | Jalankan frontend + backend bersamaan (`concurrently`) |
+| `frontend/` | `npm run dev` | Next.js dev server |
+| `frontend/` | `npm run build` | Build produksi Next.js |
+| `frontend/` | `npm run start` | Jalankan build produksi |
+| `frontend/` | `npm run lint` | ESLint |
+| `backend/` | `npm run dev` | Express server dengan `nodemon` (auto-restart) |
+| `backend/` | `npm run start` | Express server dengan Node biasa |
+| `backend/` | `npm test` | Test suite (Jest) |
+| `backend/` | `npm run db:seed` | Seed data referensi + bootstrap akun `SUPERADMIN` |
+
 ## Dokumentasi
 
 Dokumentasi lengkap ada di [`docs/`](./docs):
@@ -85,6 +121,16 @@ npm test
 ```
 
 Belum ada test framework dikonfigurasi untuk frontend.
+
+## Status & Roadmap
+
+Sudah berjalan: autentikasi, CRUD peternak/ternak/data master, laporan kematian & kelahiran, generate berita acara & akta (docx/pdf), dashboard ringkasan, analisis penyebab kematian & populasi wilayah — backend dan frontend sudah terintegrasi penuh.
+
+Belum tersedia:
+
+- Endpoint ganti password sendiri untuk user (saat ini password awal hanya diset oleh `SUPERADMIN` saat registrasi akun).
+- Test framework untuk frontend.
+- Integration test backend yang menyentuh database asli (test saat ini belum jalan ke database terpisah).
 
 ## Lisensi
 
