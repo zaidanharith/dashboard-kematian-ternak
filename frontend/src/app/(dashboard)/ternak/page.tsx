@@ -21,7 +21,7 @@ import { getTernakList } from "@/services/ternak.service";
 import { getPeternakList } from "@/services/peternak.service";
 import { getJenisTernakList } from "@/services/master.service";
 import { getCurrentUser } from "@/services/auth.service";
-import { canManageData } from "@/lib/permissions";
+import { isAdminOrAbove } from "@/lib/permissions";
 import { formatTanggalSingkat, hitungUmur } from "@/utils/format";
 import type { StatusTernak } from "@/types/ternak";
 
@@ -47,7 +47,7 @@ export default async function TernakPage({
     getJenisTernakList(),
     getCurrentUser(),
   ]);
-  const canManage = user ? canManageData(user.role) : false;
+  const canManage = user ? isAdminOrAbove(user.role) : false;
   const peternakOptions = peternakList.map((p) => ({ id: p.id, nama: p.nama }));
 
   return (

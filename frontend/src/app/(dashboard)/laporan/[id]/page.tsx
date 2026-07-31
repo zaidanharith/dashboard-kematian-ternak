@@ -11,7 +11,7 @@ import { BeritaAcaraCard } from "@/features/laporan/components/berita-acara-card
 import { deleteLaporanAction } from "@/features/laporan/actions";
 import { getLaporanById } from "@/services/laporan.service";
 import { getCurrentUser } from "@/services/auth.service";
-import { canDeleteLaporan } from "@/lib/permissions";
+import { isAdminOrAbove } from "@/lib/permissions";
 import { formatTanggal, hitungUmur } from "@/utils/format";
 
 export const metadata: Metadata = {
@@ -53,7 +53,7 @@ export default async function DetailLaporanPage({
               Edit
             </Link>
           </Button>
-          {user && canDeleteLaporan(user.role) ? (
+          {user && isAdminOrAbove(user.role) ? (
             <ConfirmDeleteButton
               action={deleteLaporanAction.bind(null, laporan.id)}
               title="Hapus laporan kematian?"

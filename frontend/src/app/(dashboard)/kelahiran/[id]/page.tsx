@@ -11,7 +11,7 @@ import { AktaCard } from "@/features/kelahiran/components/akta-card";
 import { deleteKelahiranAction } from "@/features/kelahiran/actions";
 import { getKelahiranById } from "@/services/kelahiran.service";
 import { getCurrentUser } from "@/services/auth.service";
-import { canDeleteLaporan } from "@/lib/permissions";
+import { isAdminOrAbove } from "@/lib/permissions";
 import { formatTanggal } from "@/utils/format";
 
 export const metadata: Metadata = {
@@ -53,7 +53,7 @@ export default async function DetailKelahiranPage({
               Edit
             </Link>
           </Button>
-          {user && canDeleteLaporan(user.role) ? (
+          {user && isAdminOrAbove(user.role) ? (
             <ConfirmDeleteButton
               action={deleteKelahiranAction.bind(null, laporan.id)}
               title="Hapus laporan kelahiran?"

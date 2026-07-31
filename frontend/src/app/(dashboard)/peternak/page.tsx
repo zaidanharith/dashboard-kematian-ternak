@@ -18,7 +18,7 @@ import { PeternakFormDialog } from "@/features/peternak/components/peternak-form
 import { PeternakRowActions } from "@/features/peternak/components/peternak-row-actions";
 import { getPeternakList } from "@/services/peternak.service";
 import { getCurrentUser } from "@/services/auth.service";
-import { canManageData } from "@/lib/permissions";
+import { isAdminOrAbove } from "@/lib/permissions";
 
 export const metadata: Metadata = {
   title: "Peternak",
@@ -34,7 +34,7 @@ export default async function PeternakPage({
     getPeternakList(search),
     getCurrentUser(),
   ]);
-  const canManage = user ? canManageData(user.role) : false;
+  const canManage = user ? isAdminOrAbove(user.role) : false;
 
   return (
     <>
