@@ -63,9 +63,25 @@ describe('buildAktaKelahiranData', () => {
 
 describe('generateAktaKelahiranDocx', () => {
   it('throws a TEMPLATE_NOT_FOUND error when the template file is missing', () => {
+    const originalEnv = process.env.AKTA_KELAHIRAN_TEMPLATE_NAME;
+    process.env.AKTA_KELAHIRAN_TEMPLATE_NAME = 'file-yang-tidak-ada.docx';
+
     expect(() => generateAktaKelahiranDocx(buildLaporan())).toThrow(
       expect.objectContaining({ code: 'TEMPLATE_NOT_FOUND' }),
     );
+
+    if (originalEnv === undefined) {
+      delete process.env.AKTA_KELAHIRAN_TEMPLATE_NAME;
+    } else {
+      process.env.AKTA_KELAHIRAN_TEMPLATE_NAME = originalEnv;
+    }
+  });
+
+  it('generates a non-empty docx buffer when the template exists', () => {
+    const buffer = generateAktaKelahiranDocx(buildLaporan());
+
+    expect(Buffer.isBuffer(buffer)).toBe(true);
+    expect(buffer.length).toBeGreaterThan(0);
   });
 });
 
