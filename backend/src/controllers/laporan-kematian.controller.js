@@ -92,6 +92,13 @@ exports.createLaporanKematian = async (req, res) => {
       });
     }
 
+    if (!ternak.jenisKelamin || !ternak.tanggalLahir) {
+      return res.status(400).json({
+        success: false,
+        message: 'Data ternak (jenis kelamin, tanggal lahir) belum lengkap. Lengkapi data ternak terlebih dahulu sebelum membuat laporan kematian.',
+      });
+    }
+
     const penyebabKematian = await prisma.penyebabKematian.findUnique({
       where: { id: penyebabKematianId },
     });

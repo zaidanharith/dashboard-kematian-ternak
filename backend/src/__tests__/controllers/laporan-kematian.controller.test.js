@@ -65,8 +65,24 @@ describe('createLaporanKematian', () => {
     );
   });
 
+  it('returns 400 when the ternak has no jenisKelamin/tanggalLahir yet (e.g. bulk-imported from recording-ternak)', async () => {
+    prisma.ternak.findUnique.mockResolvedValue({ id: 'ternak-1', status: 'HIDUP', jenisKelamin: null, tanggalLahir: null });
+    const req = { body: validBody, user: { id: 'petugas-1' } };
+    const res = buildRes();
+
+    await laporanKematianController.createLaporanKematian(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('belum lengkap') }),
+    );
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it('returns 400 when penyebab kematian does not exist', async () => {
-    prisma.ternak.findUnique.mockResolvedValue({ id: 'ternak-1', status: 'HIDUP' });
+    prisma.ternak.findUnique.mockResolvedValue({
+      id: 'ternak-1', status: 'HIDUP', jenisKelamin: 'JANTAN', tanggalLahir: new Date('2024-01-01'),
+    });
     prisma.penyebabKematian.findUnique.mockResolvedValue(null);
     const req = { body: validBody, user: { id: 'petugas-1' } };
     const res = buildRes();
@@ -78,7 +94,9 @@ describe('createLaporanKematian', () => {
   });
 
   it('creates the laporan and marks the ternak as MATI in a single transaction', async () => {
-    prisma.ternak.findUnique.mockResolvedValue({ id: 'ternak-1', status: 'HIDUP' });
+    prisma.ternak.findUnique.mockResolvedValue({
+      id: 'ternak-1', status: 'HIDUP', jenisKelamin: 'JANTAN', tanggalLahir: new Date('2024-01-01'),
+    });
     prisma.penyebabKematian.findUnique.mockResolvedValue({ id: 'penyebab-1' });
     prisma.laporanKematian.create.mockReturnValue({ id: 'laporan-1', ternakId: 'ternak-1' });
     prisma.ternak.update.mockReturnValue({ id: 'ternak-1', status: 'MATI' });

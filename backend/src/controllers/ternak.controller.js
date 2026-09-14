@@ -156,14 +156,7 @@ exports.provisionTernak = async (req, res) => {
       });
     }
 
-    if (!jenisKelamin || !tanggalLahir) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ternak belum terdaftar — jenisKelamin dan tanggalLahir wajib diisi untuk mendaftarkan baru.',
-      });
-    }
-
-    if (!['JANTAN', 'BETINA'].includes(jenisKelamin)) {
+    if (jenisKelamin && !['JANTAN', 'BETINA'].includes(jenisKelamin)) {
       return res.status(400).json({
         success: false,
         message: 'Jenis kelamin harus JANTAN atau BETINA.',
@@ -180,14 +173,17 @@ exports.provisionTernak = async (req, res) => {
       return res.status(400).json({ success: false, message: `Jenis ternak "${jenisTernakNama}" tidak ditemukan.` });
     }
 
+    // jenisKelamin & tanggalLahir boleh kosong di sini (mis. saat bulk-import kambing dari
+    // recording-ternak, yang tidak menyimpan data ini) — wajib dilengkapi nanti sebelum
+    // laporan kematian/berita acara bisa dibuat untuk ternak ini (lihat laporan-kematian.controller.js).
     const ternak = await prisma.ternak.create({
       data: {
         kodeTernak,
         jenisTernakId: jenisTernak.id,
         peternakId,
-        jenisKelamin,
+        jenisKelamin: jenisKelamin || null,
         rasRumpun,
-        tanggalLahir: new Date(tanggalLahir),
+        tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : null,
       },
       include: { peternak: true, jenisTernak: true },
     });

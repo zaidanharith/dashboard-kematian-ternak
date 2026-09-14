@@ -56,9 +56,9 @@ model Ternak {
   kodeTernak    String       @unique @map("kode_ternak")
   jenisTernakId String       @map("jenis_ternak_id") @db.Uuid
   peternakId    String       @map("peternak_id") @db.Uuid
-  jenisKelamin  JenisKelamin @map("jenis_kelamin")
+  jenisKelamin  JenisKelamin? @map("jenis_kelamin")
   rasRumpun     String?      @map("ras_rumpun")
-  tanggalLahir  DateTime     @map("tanggal_lahir") @db.Date
+  tanggalLahir  DateTime?    @map("tanggal_lahir") @db.Date
   status        StatusTernak @default(HIDUP)
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @updatedAt @map("updated_at")

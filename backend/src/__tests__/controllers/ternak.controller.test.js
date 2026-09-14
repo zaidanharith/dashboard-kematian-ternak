@@ -161,9 +161,29 @@ describe('provisionTernak', () => {
     );
   });
 
-  it('returns 400 when creating a new ternak without jenisKelamin/tanggalLahir', async () => {
+  it('creates a new ternak with null jenisKelamin/tanggalLahir when not provided (bulk import)', async () => {
     prisma.ternak.findUnique.mockResolvedValue(null);
+    prisma.peternak.findUnique.mockResolvedValue({ id: 'peternak-1' });
+    prisma.jenisTernak.findUnique.mockResolvedValue({ id: 'jenis-kambing', nama: 'Kambing' });
+    prisma.ternak.create.mockResolvedValue({ id: 'ternak-1', kodeTernak: '12' });
     const req = { body: { kodeTernak: '12', jenisTernakNama: 'Kambing', peternakId: 'peternak-1' } };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(prisma.ternak.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ jenisKelamin: null, tanggalLahir: null }),
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('returns 400 when jenisKelamin is provided but invalid', async () => {
+    prisma.ternak.findUnique.mockResolvedValue(null);
+    const req = {
+      body: { kodeTernak: '12', jenisTernakNama: 'Kambing', peternakId: 'peternak-1', jenisKelamin: 'TIDAK_VALID' },
+    };
     const res = buildRes();
 
     await ternakController.provisionTernak(req, res);
