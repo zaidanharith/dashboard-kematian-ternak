@@ -1,33 +1,36 @@
-const bcrypt = require('bcryptjs');
-const prisma = require('../database/connections/prisma_client');
+const { recordingFetch } = require('../lib/recording-client');
 
-const REGISTERABLE_ROLES = ['ADMIN', 'PETUGAS'];
+/**
+ * Manajemen user di-proxy ke recording-ternak — tabel users sudah digabung ke sana
+ * (endpoint /api/admins, role ADMIN/SUPERADMIN/VIEWER menggantikan ADMIN/SUPERADMIN/PETUGAS).
+ */
+const REGISTERABLE_ROLES = ['ADMIN', 'VIEWER'];
+
+const toUser = (admin) => ({
+  id: admin.id,
+  name: admin.name,
+  email: admin.email,
+  avatarUrl: admin.avatarUrl,
+  role: admin.role,
+  createdAt: admin.createdAt,
+});
+
+const usernameFromEmail = (email) => email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const result = await recordingFetch('/api/admins', { token: req.token });
 
     return res.status(200).json({
       success: true,
       message: 'Data pengguna berhasil diambil.',
-      data: {
-        users: users.map((user) => ({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-          createdAt: user.createdAt,
-        })),
-      },
+      data: { users: result.data.admins.map(toUser) },
     });
   } catch (error) {
     console.error('Get All Users Error:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: 'Terjadi kesalahan saat mengambil data pengguna.',
+      message: error.payload?.message || 'Terjadi kesalahan saat mengambil data pengguna.',
       error: error.message,
     });
   }
@@ -47,7 +50,7 @@ exports.registerUser = async (req, res) => {
     if (!REGISTERABLE_ROLES.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: 'Role hanya boleh ADMIN atau PETUGAS.',
+        message: `Role hanya boleh ${REGISTERABLE_ROLES.join(' atau ')}.`,
       });
     }
 
@@ -58,37 +61,22 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role },
+    const result = await recordingFetch('/api/admins', {
+      method: 'POST',
+      token: req.token,
+      body: { username: usernameFromEmail(email), email, password, name, role },
     });
 
     return res.status(201).json({
       success: true,
       message: 'Akun berhasil didaftarkan.',
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        },
-      },
+      data: { user: toUser(result.data.admin) },
     });
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({
-        success: false,
-        message: 'Email sudah terdaftar.',
-      });
-    }
-
     console.error('Register User Error:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: 'Terjadi kesalahan saat mendaftarkan akun.',
+      message: error.payload?.message || 'Terjadi kesalahan saat mendaftarkan akun.',
       error: error.message,
     });
   }
@@ -96,33 +84,18 @@ exports.registerUser = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Pengguna tidak ditemukan.',
-      });
-    }
+    const result = await recordingFetch('/api/auth/me', { token: req.token });
 
     return res.status(200).json({
       success: true,
       message: 'Data pengguna berhasil diambil.',
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        },
-      },
+      data: { user: toUser(result.data.admin) },
     });
   } catch (error) {
     console.error('Get Me Error:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: 'Terjadi kesalahan saat mengambil data pengguna.',
+      message: error.payload?.message || 'Terjadi kesalahan saat mengambil data pengguna.',
       error: error.message,
     });
   }
@@ -139,29 +112,18 @@ exports.updateMe = async (req, res) => {
       });
     }
 
-    const user = await prisma.user.update({
-      where: { id: req.user.id },
-      data: { name },
-    });
+    const result = await recordingFetch('/api/auth/me', { method: 'PATCH', token: req.token, body: { name } });
 
     return res.status(200).json({
       success: true,
       message: 'Data pengguna berhasil diperbarui.',
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        },
-      },
+      data: { user: toUser(result.data.admin) },
     });
   } catch (error) {
     console.error('Update Me Error:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: 'Terjadi kesalahan saat memperbarui data pengguna.',
+      message: error.payload?.message || 'Terjadi kesalahan saat memperbarui data pengguna.',
       error: error.message,
     });
   }

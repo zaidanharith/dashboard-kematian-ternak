@@ -4,6 +4,14 @@ jest.mock('../../database/connections/prisma_client', () => ({
   jenisTernak: { findUnique: jest.fn() },
 }));
 
+const validProvisionPayload = {
+  kodeTernak: '12',
+  jenisTernakNama: 'Kambing',
+  peternakId: 'peternak-1',
+  jenisKelamin: 'JANTAN',
+  tanggalLahir: '2024-01-01',
+};
+
 const prisma = require('../../database/connections/prisma_client');
 const ternakController = require('../../controllers/ternak.controller');
 
@@ -124,5 +132,74 @@ describe('deleteTernak', () => {
     await ternakController.deleteTernak(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+});
+
+describe('provisionTernak', () => {
+  it('returns 400 when kodeTernak, jenisTernakNama, or peternakId is missing', async () => {
+    const req = { body: { kodeTernak: '12' } };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(prisma.ternak.create).not.toHaveBeenCalled();
+  });
+
+  it('returns the existing ternak without creating one when kodeTernak already exists', async () => {
+    const existing = { id: 'ternak-1', kodeTernak: '12' };
+    prisma.ternak.findUnique.mockResolvedValue(existing);
+    const req = { body: { kodeTernak: '12', jenisTernakNama: 'Kambing', peternakId: 'peternak-1' } };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(prisma.ternak.create).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { ternak: existing } }),
+    );
+  });
+
+  it('returns 400 when creating a new ternak without jenisKelamin/tanggalLahir', async () => {
+    prisma.ternak.findUnique.mockResolvedValue(null);
+    const req = { body: { kodeTernak: '12', jenisTernakNama: 'Kambing', peternakId: 'peternak-1' } };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(prisma.ternak.create).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when jenisTernakNama does not match any JenisTernak', async () => {
+    prisma.ternak.findUnique.mockResolvedValue(null);
+    prisma.peternak.findUnique.mockResolvedValue({ id: 'peternak-1' });
+    prisma.jenisTernak.findUnique.mockResolvedValue(null);
+    const req = { body: validProvisionPayload };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(prisma.ternak.create).not.toHaveBeenCalled();
+  });
+
+  it('creates a new ternak by resolving jenisTernakNama to an id', async () => {
+    prisma.ternak.findUnique.mockResolvedValue(null);
+    prisma.peternak.findUnique.mockResolvedValue({ id: 'peternak-1' });
+    prisma.jenisTernak.findUnique.mockResolvedValue({ id: 'jenis-kambing', nama: 'Kambing' });
+    prisma.ternak.create.mockResolvedValue({ id: 'ternak-1', kodeTernak: '12' });
+    const req = { body: validProvisionPayload };
+    const res = buildRes();
+
+    await ternakController.provisionTernak(req, res);
+
+    expect(prisma.ternak.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ kodeTernak: '12', jenisTernakId: 'jenis-kambing', peternakId: 'peternak-1' }),
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
   });
 });

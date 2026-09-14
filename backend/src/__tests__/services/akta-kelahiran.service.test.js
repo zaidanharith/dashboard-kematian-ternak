@@ -17,7 +17,7 @@ function buildLaporan(overrides = {}) {
       jenisTernak: { nama: 'Kambing' },
       peternak: { nama: 'Pak Slamet', desa: 'Besuki', dusun: 'Krajan', rt: '01', rw: '02' },
     },
-    petugas: { name: 'Budi Petugas' },
+    petugasNama: 'Budi Petugas',
     ...overrides,
   };
 }

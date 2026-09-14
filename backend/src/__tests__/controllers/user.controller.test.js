@@ -1,12 +1,16 @@
-jest.mock('../../database/connections/prisma_client', () => ({
-  user: { findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
+const mockRecordingFetch = jest.fn();
+jest.mock('../../lib/recording-client', () => ({
+  recordingFetch: (...args) => mockRecordingFetch(...args),
 }));
 
-const prisma = require('../../database/connections/prisma_client');
 const { getMe, updateMe, getAllUsers, registerUser } = require('../../controllers/user.controller');
 
 function buildRes() {
   return { status: jest.fn().mockReturnThis(), json: jest.fn() };
+}
+
+function buildAdmin(overrides = {}) {
+  return { id: 'user-1', name: 'Test User', email: 'test@example.com', avatarUrl: null, role: 'ADMIN', ...overrides };
 }
 
 describe('getMe', () => {
@@ -15,47 +19,31 @@ describe('getMe', () => {
   });
 
   it('returns the authenticated user data', async () => {
-    prisma.user.findUnique.mockResolvedValue({
-      id: 'user-1',
-      name: 'Test User',
-      email: 'test@example.com',
-      avatarUrl: null,
-      role: 'PETUGAS',
-    });
-    const req = { user: { id: 'user-1' } };
+    mockRecordingFetch.mockResolvedValue({ data: { admin: buildAdmin() } });
+    const req = { user: { id: 'user-1' }, token: 'jwt-token' };
     const res = buildRes();
 
     await getMe(req, res);
 
-    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 'user-1' } });
+    expect(mockRecordingFetch).toHaveBeenCalledWith('/api/auth/me', { token: 'jwt-token' });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: true, data: { user: expect.objectContaining({ id: 'user-1' }) } }),
     );
   });
 
-  it('returns 404 when the user no longer exists', async () => {
-    prisma.user.findUnique.mockResolvedValue(null);
-    const req = { user: { id: 'deleted-user' } };
+  it('forwards the error status when recording-ternak fails', async () => {
+    const error = new Error('Akun tidak ditemukan.');
+    error.status = 404;
+    error.payload = { message: 'Akun tidak ditemukan.' };
+    mockRecordingFetch.mockRejectedValue(error);
+    const req = { user: { id: 'deleted-user' }, token: 'jwt-token' };
     const res = buildRes();
 
     await getMe(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
-  });
-
-  it('returns 500 with error envelope when prisma throws', async () => {
-    prisma.user.findUnique.mockRejectedValue(new Error('db down'));
-    const req = { user: { id: 'user-1' } };
-    const res = buildRes();
-
-    await getMe(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, error: 'db down' }),
-    );
   });
 });
 
@@ -71,25 +59,20 @@ describe('updateMe', () => {
     await updateMe(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(prisma.user.update).not.toHaveBeenCalled();
+    expect(mockRecordingFetch).not.toHaveBeenCalled();
   });
 
   it('updates the user name and returns the updated user', async () => {
-    prisma.user.update.mockResolvedValue({
-      id: 'user-1',
-      name: 'New Name',
-      email: 'test@example.com',
-      avatarUrl: null,
-      role: 'PETUGAS',
-    });
-    const req = { user: { id: 'user-1' }, body: { name: 'New Name' } };
+    mockRecordingFetch.mockResolvedValue({ data: { admin: buildAdmin({ name: 'New Name' }) } });
+    const req = { user: { id: 'user-1' }, token: 'jwt-token', body: { name: 'New Name' } };
     const res = buildRes();
 
     await updateMe(req, res);
 
-    expect(prisma.user.update).toHaveBeenCalledWith({
-      where: { id: 'user-1' },
-      data: { name: 'New Name' },
+    expect(mockRecordingFetch).toHaveBeenCalledWith('/api/auth/me', {
+      method: 'PATCH',
+      token: 'jwt-token',
+      body: { name: 'New Name' },
     });
     expect(res.status).toHaveBeenCalledWith(200);
   });
@@ -101,10 +84,10 @@ describe('getAllUsers', () => {
   });
 
   it('returns the list of users without exposing password hashes', async () => {
-    prisma.user.findMany.mockResolvedValue([
-      { id: 'user-1', name: 'A', email: 'a@example.com', avatarUrl: null, role: 'ADMIN', password: 'hashed', createdAt: new Date() },
-    ]);
-    const req = {};
+    mockRecordingFetch.mockResolvedValue({
+      data: { admins: [buildAdmin({ password: 'hashed' })] },
+    });
+    const req = { token: 'jwt-token' };
     const res = buildRes();
 
     await getAllUsers(req, res);
@@ -127,10 +110,10 @@ describe('registerUser', () => {
     await registerUser(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(mockRecordingFetch).not.toHaveBeenCalled();
   });
 
-  it('returns 400 when role is not ADMIN or PETUGAS', async () => {
+  it('returns 400 when role is not ADMIN or VIEWER', async () => {
     const req = {
       body: { name: 'New User', email: 'new@example.com', password: 'password123', role: 'SUPERADMIN' },
     };
@@ -139,53 +122,54 @@ describe('registerUser', () => {
     await registerUser(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(mockRecordingFetch).not.toHaveBeenCalled();
   });
 
   it('returns 400 when password is shorter than 8 characters', async () => {
     const req = {
-      body: { name: 'New User', email: 'new@example.com', password: 'short', role: 'PETUGAS' },
+      body: { name: 'New User', email: 'new@example.com', password: 'short', role: 'VIEWER' },
     };
     const res = buildRes();
 
     await registerUser(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(mockRecordingFetch).not.toHaveBeenCalled();
   });
 
-  it('returns 400 when email is already registered', async () => {
-    const error = new Error('unique constraint');
-    error.code = 'P2002';
-    prisma.user.create.mockRejectedValue(error);
+  it('forwards the error status when recording-ternak rejects the registration', async () => {
+    const error = new Error('Email sudah terdaftar.');
+    error.status = 409;
+    error.payload = { message: 'Email sudah terdaftar.' };
+    mockRecordingFetch.mockRejectedValue(error);
     const req = {
-      body: { name: 'New User', email: 'taken@example.com', password: 'password123', role: 'PETUGAS' },
+      token: 'jwt-token',
+      body: { name: 'New User', email: 'taken@example.com', password: 'password123', role: 'VIEWER' },
     };
     const res = buildRes();
 
     await registerUser(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(409);
   });
 
-  it('creates an ADMIN/PETUGAS account with a hashed password', async () => {
-    prisma.user.create.mockResolvedValue({
-      id: 'user-2', name: 'New User', email: 'new@example.com', avatarUrl: null, role: 'PETUGAS',
+  it('creates an ADMIN/VIEWER account by proxying to recording-ternak', async () => {
+    mockRecordingFetch.mockResolvedValue({
+      data: { admin: buildAdmin({ id: 'user-2', name: 'New User', email: 'new@example.com', role: 'VIEWER' }) },
     });
     const req = {
-      body: { name: 'New User', email: 'new@example.com', password: 'password123', role: 'PETUGAS' },
+      token: 'jwt-token',
+      body: { name: 'New User', email: 'new@example.com', password: 'password123', role: 'VIEWER' },
     };
     const res = buildRes();
 
     await registerUser(req, res);
 
-    expect(prisma.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ email: 'new@example.com', role: 'PETUGAS' }),
-      }),
-    );
-    const createCallArgs = prisma.user.create.mock.calls[0][0];
-    expect(createCallArgs.data.password).not.toBe('password123');
+    expect(mockRecordingFetch).toHaveBeenCalledWith('/api/admins', {
+      method: 'POST',
+      token: 'jwt-token',
+      body: expect.objectContaining({ email: 'new@example.com', role: 'VIEWER', username: 'new' }),
+    });
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: true, data: { user: expect.not.objectContaining({ password: expect.anything() }) } }),

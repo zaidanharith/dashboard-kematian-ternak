@@ -6,14 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  SUPERADMIN
-  ADMIN
-  PETUGAS
-
-  @@map("role")
-}
-
 enum JenisKelamin {
   JANTAN
   BETINA
@@ -28,27 +20,15 @@ enum StatusTernak {
   @@map("status_ternak")
 }
 
-model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  email     String   @unique
-  name      String
-  password  String?
-  googleId  String?  @unique @map("google_id")
-  avatarUrl String?  @map("avatar_url")
-  role      Role     @default(PETUGAS)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  laporanKematian  LaporanKematian[]
-  laporanKelahiran LaporanKelahiran[]
-
-  @@map("users")
-}
+// Data user (auth, role) TIDAK lagi disimpan di sini — sudah digabung ke database
+// recording-ternak (model Admin di sana). Backend ini hanya menyimpan id user (petugasId)
+// sebagai referensi longgar (bukan relasi Prisma, karena beda database).
+// Lihat backend/src/lib/recording-client.js untuk cara backend ini memanggil recording-ternak.
 
 model Peternak {
   id        String   @id @default(uuid()) @db.Uuid
   nama      String
-  nik       String   @unique
+  nik       String?  @unique
   telepon   String
   desa      String   @default("Besuki")
   dusun     String
@@ -113,7 +93,6 @@ model LaporanKematian {
 
   ternak           Ternak           @relation(fields: [ternakId], references: [id], onDelete: Restrict)
   penyebabKematian PenyebabKematian @relation(fields: [penyebabKematianId], references: [id], onDelete: Restrict)
-  petugas          User             @relation(fields: [petugasId], references: [id], onDelete: Restrict)
 
   @@map("laporan_kematian")
 }
@@ -122,14 +101,14 @@ model LaporanKelahiran {
   id           String   @id @default(uuid()) @db.Uuid
   ternakId     String   @unique @map("ternak_id") @db.Uuid
   petugasId    String   @map("petugas_id") @db.Uuid
+  petugasNama  String   @map("petugas_nama")
   tanggalLahir DateTime @map("tanggal_lahir") @db.Date
   catatan      String?
   nomorAkta    String?  @map("nomor_akta")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  ternak  Ternak @relation(fields: [ternakId], references: [id], onDelete: Cascade)
-  petugas User   @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+  ternak Ternak @relation(fields: [ternakId], references: [id], onDelete: Cascade)
 
   @@map("laporan_kelahiran")
 }

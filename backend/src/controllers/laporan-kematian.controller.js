@@ -4,7 +4,6 @@ const { generateBeritaAcaraDocx, generateBeritaAcaraPdf } = require('../services
 const laporanInclude = {
   ternak: { include: { peternak: true, jenisTernak: true } },
   penyebabKematian: true,
-  petugas: true,
 };
 
 exports.getAllLaporanKematian = async (req, res) => {

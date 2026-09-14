@@ -38,7 +38,7 @@ function buildAktaKelahiranData(laporan) {
     tanggal_lahir_angka: String(tanggalLahir.getDate()),
     bulan_lahir: NAMA_BULAN[tanggalLahir.getMonth()],
     tahun_lahir: String(tanggalLahir.getFullYear()),
-    petugas_pencatat: laporan.petugas.name,
+    petugas_pencatat: laporan.petugasNama,
     catatan: laporan.catatan || '-',
   };
 }

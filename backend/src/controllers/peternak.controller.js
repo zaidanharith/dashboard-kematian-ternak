@@ -1,4 +1,5 @@
 const prisma = require('../database/connections/prisma_client');
+const recordingSyncService = require('../services/recording-sync.service');
 
 exports.getAllPeternak = async (req, res) => {
   try {
@@ -67,16 +68,17 @@ exports.createPeternak = async (req, res) => {
   try {
     const { nama, nik, telepon, desa, dusun, rt, rw } = req.body;
 
-    if (!nama || !nik || !telepon || !desa || !dusun || !rt || !rw) {
+    if (!nama || !telepon || !desa || !dusun || !rt || !rw) {
       return res.status(400).json({
         success: false,
-        message: 'Nama, NIK, telepon, desa, dusun, RT, dan RW wajib diisi.',
+        message: 'Nama, telepon, desa, dusun, RT, dan RW wajib diisi.',
       });
     }
 
     const peternak = await prisma.peternak.create({
-      data: { nama, nik, telepon, desa, dusun, rt, rw },
+      data: { nama, nik: nik || null, telepon, desa, dusun, rt, rw },
     });
+    await recordingSyncService.pushPeternakUpsert(peternak);
 
     return res.status(201).json({
       success: true,
@@ -109,6 +111,7 @@ exports.updatePeternak = async (req, res) => {
       where: { id },
       data: { nama, nik, telepon, desa, dusun, rt, rw },
     });
+    await recordingSyncService.pushPeternakUpsert(peternak);
 
     return res.status(200).json({
       success: true,
@@ -144,6 +147,7 @@ exports.deletePeternak = async (req, res) => {
     const { id } = req.params;
 
     await prisma.peternak.delete({ where: { id } });
+    await recordingSyncService.pushPeternakDelete(id);
 
     return res.status(200).json({
       success: true,

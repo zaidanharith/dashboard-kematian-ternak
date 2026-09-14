@@ -1,5 +1,4 @@
 require('dotenv').config();
-const bcrypt = require('bcryptjs');
 const prisma = require('../src/database/connections/prisma_client');
 
 const jenisTernak = ['Sapi', 'Kambing', 'Domba', 'Kerbau', 'Ayam', 'Bebek'];
@@ -28,24 +27,8 @@ async function main() {
     data: penyebabKematian.map((nama) => ({ nama })),
   });
 
-  if (process.env.SUPERADMIN_EMAIL && process.env.SUPERADMIN_PASSWORD) {
-    console.log('[Seed] Membuat akun SUPERADMIN...');
-    const hashedPassword = await bcrypt.hash(process.env.SUPERADMIN_PASSWORD, 10);
-
-    await prisma.user.upsert({
-      where: { email: process.env.SUPERADMIN_EMAIL },
-      update: {},
-      create: {
-        name: 'Super Admin',
-        email: process.env.SUPERADMIN_EMAIL,
-        password: hashedPassword,
-        role: 'SUPERADMIN',
-      },
-    });
-  } else {
-    console.log('[Seed] SUPERADMIN_EMAIL/SUPERADMIN_PASSWORD tidak diset, akun SUPERADMIN dilewati.');
-  }
-
+  console.log('[Seed] Akun SUPERADMIN tidak dibuat di sini — tabel users sudah digabung ke database');
+  console.log('[Seed] recording-ternak. Jalankan seed/bootstrap admin di sana (model Admin).');
   console.log('[Seed] Selesai.');
 }
 

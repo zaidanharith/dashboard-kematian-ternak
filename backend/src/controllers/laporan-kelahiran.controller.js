@@ -3,7 +3,6 @@ const { generateAktaKelahiranDocx, generateAktaKelahiranPdf } = require('../serv
 
 const laporanInclude = {
   ternak: { include: { peternak: true, jenisTernak: true } },
-  petugas: true,
 };
 
 exports.getAllLaporanKelahiran = async (req, res) => {
@@ -114,6 +113,7 @@ exports.createLaporanKelahiran = async (req, res) => {
         data: {
           ternakId: ternak.id,
           petugasId: req.user.id,
+          petugasNama: req.user.name,
           tanggalLahir: new Date(tanggalLahir),
           catatan,
         },
