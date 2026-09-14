@@ -1,5 +1,6 @@
 const prisma = require('../database/connections/prisma_client');
 const { generateBeritaAcaraDocx, generateBeritaAcaraPdf } = require('../services/berita-acara.service');
+const recordingSyncService = require('../services/recording-sync.service');
 
 const laporanInclude = {
   ternak: { include: { peternak: true, jenisTernak: true } },
@@ -127,6 +128,8 @@ exports.createLaporanKematian = async (req, res) => {
       }),
     ]);
 
+    await recordingSyncService.pushLaporanKematianUpsert(laporan);
+
     return res.status(201).json({
       success: true,
       message: 'Laporan kematian berhasil dibuat.',
@@ -157,6 +160,8 @@ exports.updateLaporanKematian = async (req, res) => {
       },
       include: laporanInclude,
     });
+
+    await recordingSyncService.pushLaporanKematianUpsert(laporan);
 
     return res.status(200).json({
       success: true,
@@ -249,7 +254,10 @@ exports.deleteLaporanKematian = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const laporan = await prisma.laporanKematian.findUnique({ where: { id } });
+    const laporan = await prisma.laporanKematian.findUnique({
+      where: { id },
+      include: { ternak: { include: { jenisTernak: true } } },
+    });
 
     if (!laporan) {
       return res.status(404).json({
@@ -265,6 +273,8 @@ exports.deleteLaporanKematian = async (req, res) => {
         data: { status: 'HIDUP' },
       }),
     ]);
+
+    await recordingSyncService.pushLaporanKematianDelete(id, laporan.ternak);
 
     return res.status(200).json({
       success: true,

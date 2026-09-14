@@ -1,5 +1,6 @@
 const prisma = require('../database/connections/prisma_client');
 const { generateAktaKelahiranDocx, generateAktaKelahiranPdf } = require('../services/akta-kelahiran.service');
+const recordingSyncService = require('../services/recording-sync.service');
 
 const laporanInclude = {
   ternak: { include: { peternak: true, jenisTernak: true } },
@@ -121,6 +122,8 @@ exports.createLaporanKelahiran = async (req, res) => {
       });
     });
 
+    await recordingSyncService.pushLaporanKelahiranUpsert(laporan);
+
     return res.status(201).json({
       success: true,
       message: 'Laporan kelahiran berhasil dibuat.',
@@ -168,6 +171,8 @@ exports.updateLaporanKelahiran = async (req, res) => {
 
       return updated;
     });
+
+    await recordingSyncService.pushLaporanKelahiranUpsert(laporan);
 
     return res.status(200).json({
       success: true,
@@ -260,7 +265,10 @@ exports.deleteLaporanKelahiran = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const laporan = await prisma.laporanKelahiran.findUnique({ where: { id } });
+    const laporan = await prisma.laporanKelahiran.findUnique({
+      where: { id },
+      include: { ternak: { include: { jenisTernak: true } } },
+    });
 
     if (!laporan) {
       return res.status(404).json({
@@ -273,6 +281,8 @@ exports.deleteLaporanKelahiran = async (req, res) => {
       await tx.laporanKelahiran.delete({ where: { id } });
       await tx.ternak.delete({ where: { id: laporan.ternakId } });
     });
+
+    await recordingSyncService.pushLaporanKelahiranDelete(id, laporan.ternak);
 
     return res.status(200).json({
       success: true,
