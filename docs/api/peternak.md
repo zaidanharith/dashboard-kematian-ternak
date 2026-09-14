@@ -1,6 +1,8 @@
 # Peternak API
 
-Base path: `/api/peternak`. Semua endpoint butuh `Authorization: Bearer <token>`; tidak ada gate role tambahan — `PETUGAS` boleh membuat/mengubah/menghapus data peternak.
+Base path: `/api/peternak`. Semua endpoint butuh `Authorization: Bearer <token>`; tidak ada gate role tambahan.
+
+> Sejak [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md), setiap `POST`/`PATCH`/`DELETE` di sini juga di-push ke tabel `Farmer` milik recording-ternak (id baris sama) lewat `POST/DELETE /internal/farmers/:id` — lihat [`internal.md`](./internal.md). Push ini best-effort: kegagalan sync di-log, tidak membatalkan perubahan lokal.
 
 | Method | Path | Role | Deskripsi |
 |---|---|---|---|
@@ -56,7 +58,7 @@ Query opsional `search` mencari di kolom `nama` dan `nik` (case-insensitive, `co
 }
 ```
 
-Semua field wajib diisi saat `POST`. `nik` unik — melanggar constraint ini membalas `400` (`"NIK sudah terdaftar untuk peternak lain."`).
+`nama`, `telepon`, `desa`, `dusun`, `rt`, `rw` wajib diisi saat `POST`; `nik` **opsional** (nullable sejak ADR-005 — peternak yang disinkronkan dari recording-ternak tidak punya NIK). `nik` tetap unik kalau diisi — melanggar constraint ini membalas `400` (`"NIK sudah terdaftar untuk peternak lain."`).
 
 ## `DELETE /api/peternak/:id`
 

@@ -25,7 +25,7 @@ Komponen generik yang dipakai di banyak fitur, tidak tahu-menahu soal domain dat
 | `description-list.tsx` | Layout label-value untuk halaman detail (mis. detail peternak) |
 | `confirm-delete-button.tsx` | Tombol hapus dengan konfirmasi (`AlertDialog`), dipakai di semua tabel yang punya aksi hapus |
 | `search-input.tsx` | Input pencarian generik |
-| `role-badge.tsx` | Badge warna per role (`SUPERADMIN`/`ADMIN`/`PETUGAS`) |
+| `role-badge.tsx` | Badge warna per role (`SUPERADMIN`/`ADMIN`/`VIEWER`) |
 | `status-ternak-badge.tsx` | Badge warna status ternak (`HIDUP`/`MATI`) |
 
 ### `components/layout/`

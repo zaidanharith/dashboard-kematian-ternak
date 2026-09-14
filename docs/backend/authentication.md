@@ -2,14 +2,16 @@
 
 Untuk kontrak endpoint, lihat [api/authentication.md](../api/authentication.md). Dokumen ini menjelaskan implementasinya.
 
-## Dua cara login, satu bentuk token
+> Sejak [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md), **verifikasi kredensial dan penandatanganan JWT tidak lagi terjadi di backend ini** — keduanya proxy ke recording-ternak.
 
-| Cara | Endpoint | Verifikasi | File |
+## Dua cara login, keduanya proxy
+
+| Cara | Endpoint | Implementasi | File |
 |---|---|---|---|
-| Email/password | `POST /api/auth/login` | `bcrypt.compare()` terhadap `User.password` | `controllers/auth.controller.js` → `login` |
-| Google OAuth | `POST /api/auth/google` | `OAuth2Client.verifyIdToken()` dari `google-auth-library`, audience = `GOOGLE_CLIENT_ID` | `controllers/auth.controller.js` → `googleSignIn` |
+| Email/password | `POST /api/auth/login` | Forward `{ email, password }` ke `RECORDING_TERNAK_API_URL/api/auth/login` (header `x-internal-key`), relay respons | `controllers/auth.controller.js` → `login` |
+| Google OAuth | `POST /api/auth/google` | Forward `{ idToken }` ke `RECORDING_TERNAK_API_URL/api/auth/google`, relay respons | `controllers/auth.controller.js` → `googleSignIn` |
 
-Keduanya berakhir dengan `jwt.sign({ id, email, name, role }, JWT_SECRET, { expiresIn: '7d' })` — payload dan masa berlaku token identik terlepas dari cara login.
+Tidak ada `bcrypt.compare()` atau `OAuth2Client.verifyIdToken()` di kode ini lagi — keduanya kini hanya ada di `auth.controller.js` milik recording-ternak. Token JWT (`{ id, username, email, name, role }`, ditandatangani recording-ternak dengan `JWT_SECRET` yang sama) diteruskan apa adanya ke frontend.
 
 ## Middleware
 
@@ -37,13 +39,11 @@ Butuh `req.user` sudah di-set (selalu dipasang **setelah** `authMiddleware` di c
 
 ## Tidak ada registrasi publik
 
-Tidak ada endpoint `POST /api/auth/register`. Cara satu-satunya membuat akun baru adalah `POST /api/users` (role `SUPERADMIN` saja) — lihat [api/users.md](../api/users.md). Akun `SUPERADMIN` pertama dibuat lewat `prisma/seed.js`, bukan lewat API mana pun.
+Tidak ada endpoint `POST /api/auth/register`. Cara satu-satunya membuat akun baru adalah `POST /api/users` di sini (role `SUPERADMIN` saja), yang proxy ke `POST /api/admins` milik recording-ternak — lihat [api/users.md](../api/users.md). Akun `SUPERADMIN` pertama dibuat lewat seed di **database recording-ternak**, bukan di sini lagi.
 
 ## Password
 
-- Di-hash dengan `bcryptjs`, cost factor `10` (`bcrypt.hash(password, 10)`).
-- `User.password` bersifat **nullable** — akun yang dibuat murni lewat Google Sign-In tidak punya password sampai (jika ada fitur itu ke depannya) di-set manual. Login email/password untuk akun seperti ini akan selalu `401` (`!user.password` dicek eksplisit di `login`).
-- Belum ada endpoint ganti password sendiri untuk user yang sudah login (lihat `CLAUDE.md` → *Notes for future work*).
+Hashing (`bcryptjs`, cost factor `10`) dan pengecekan `password` nullable (akun Google-only) sekarang jadi tanggung jawab recording-ternak sepenuhnya — lihat `docs/backend/authentication.md` di repo itu.
 
 ## Menyimpan token di sisi frontend
 

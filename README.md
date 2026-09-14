@@ -25,15 +25,25 @@ Website untuk pencatatan kematian dan kelahiran hewan ternak di tingkat desa, di
 
 ### Role & hak akses
 
-| Aksi | `PETUGAS` | `ADMIN` | `SUPERADMIN` |
+| Aksi | `VIEWER` | `ADMIN` | `SUPERADMIN` |
 |---|:---:|:---:|:---:|
 | Login & lihat dashboard/analisis | ✅ | ✅ | ✅ |
-| Catat/ubah peternak, ternak, laporan kematian & kelahiran | ✅ | ✅ | ✅ |
+| Catat/ubah peternak, ternak, laporan kematian & kelahiran | ❌ | ✅ | ✅ |
 | Hapus laporan kematian/kelahiran | ❌ | ✅ | ✅ |
 | Kelola data master (jenis ternak, penyebab kematian) | ❌ | ✅ | ✅ |
-| Kelola akun (`ADMIN`/`PETUGAS`) | ❌ | ❌ | ✅ |
+| Kelola akun (`ADMIN`/`VIEWER`) | ❌ | ❌ | ✅ |
 
-Akun baru hanya bisa dibuat oleh `SUPERADMIN` lewat `POST /api/users` — lihat [docs/api/users.md](./docs/api/users.md).
+> Role `PETUGAS` yang lama sudah tidak ada — dipetakan ke `ADMIN` saat integrasi dengan recording-ternak (lihat bagian [Integrasi dengan recording-ternak](#-integrasi-dengan-recording-ternak) di bawah). Akun baru hanya bisa dibuat oleh `SUPERADMIN` lewat `POST /api/users` — lihat [docs/api/users.md](./docs/api/users.md).
+
+## 🔗 Integrasi dengan recording-ternak
+
+Aplikasi ini terhubung ke aplikasi sibling **recording-ternak** (pencatatan kesehatan kambing via WhatsApp) lewat HTTP, bukan database bersama:
+
+1. **Users digabung** — tidak ada tabel user lokal lagi; auth dan manajemen akun di sini proxy ke recording-ternak, yang jadi satu-satunya sumber akun untuk kedua aplikasi.
+2. **Peternak sinkron dua arah** — perubahan peternak di kedua aplikasi saling sinkron otomatis (id baris sama).
+3. **Kambing dari recording-ternak bisa langsung dibuatkan berita acara kematian / akta kelahiran** lewat API recording-ternak — logika generate dokumennya tetap di aplikasi ini, tidak diduplikasi.
+
+Detail lengkap: [`docs/decisions/adr-005-integration-with-recording-ternak.md`](./docs/decisions/adr-005-integration-with-recording-ternak.md), [`docs/api/internal.md`](./docs/api/internal.md).
 
 ## Tech Stack
 
@@ -58,7 +68,7 @@ Struktur detail tiap folder: [docs/architecture/folder-structure.md](./docs/arch
 
 ## Menjalankan Proyek
 
-Prasyarat: Node.js, npm, project Supabase (PostgreSQL) aktif. Google OAuth Client ID opsional (login email/password tetap berfungsi tanpanya).
+Prasyarat: Node.js, npm, project Supabase (PostgreSQL) aktif, **dan backend recording-ternak sudah jalan** (aplikasi ini bergantung padanya untuk auth — lihat [Integrasi dengan recording-ternak](#-integrasi-dengan-recording-ternak)). Google OAuth Client ID opsional (login email/password tetap berfungsi tanpanya).
 
 ```bash
 # 1. install dependency di root, frontend, dan backend
@@ -71,8 +81,10 @@ cd ..
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env.local
 # lalu edit backend/.env dan frontend/.env.local — lihat docs/setup/environment.md
+# WAJIB: RECORDING_TERNAK_API_URL, INTERNAL_API_KEY, dan JWT_SECRET harus sama
+# persis dengan punya backend recording-ternak.
 
-# 3. sinkronkan schema & seed data referensi + akun SUPERADMIN pertama
+# 3. sinkronkan schema & seed data referensi (jenis ternak, penyebab kematian)
 cd backend
 npx prisma db push
 npm run db:seed
@@ -81,6 +93,8 @@ cd ..
 # 4. jalankan frontend + backend sekaligus
 npm run dev
 ```
+
+Akun `SUPERADMIN` pertama dibuat di **recording-ternak**, bukan di sini lagi (`prisma/seed.js` aplikasi ini tidak lagi bootstrap akun) — lihat setup recording-ternak.
 
 Frontend berjalan di `http://localhost:3000`, backend di `http://localhost:5000` (bisa diubah lewat `PORT`). Panduan instalasi lengkap: [docs/setup/installation.md](./docs/setup/installation.md).
 
@@ -103,7 +117,7 @@ Frontend berjalan di `http://localhost:3000`, backend di `http://localhost:5000`
 Dokumentasi lengkap ada di [`docs/`](./docs):
 
 - **Arsitektur** — [system design](./docs/architecture/system-design.md), [struktur folder](./docs/architecture/folder-structure.md), [skema database](./docs/architecture/database-schema.md), [alur API](./docs/architecture/api-flow.md)
-- **API** — referensi endpoint per resource: [autentikasi](./docs/api/authentication.md), [users](./docs/api/users.md), [peternak](./docs/api/peternak.md), [ternak](./docs/api/ternak.md), [jenis ternak](./docs/api/jenis-ternak.md), [penyebab kematian](./docs/api/penyebab-kematian.md), [laporan kematian](./docs/api/laporan-kematian.md), [laporan kelahiran](./docs/api/laporan-kelahiran.md), [dashboard](./docs/api/dashboard.md), [analisis](./docs/api/analisis.md), [format error](./docs/api/error-response.md)
+- **API** — referensi endpoint per resource: [autentikasi](./docs/api/authentication.md), [users](./docs/api/users.md), [peternak](./docs/api/peternak.md), [ternak](./docs/api/ternak.md), [jenis ternak](./docs/api/jenis-ternak.md), [penyebab kematian](./docs/api/penyebab-kematian.md), [laporan kematian](./docs/api/laporan-kematian.md), [laporan kelahiran](./docs/api/laporan-kelahiran.md), [dashboard](./docs/api/dashboard.md), [analisis](./docs/api/analisis.md), [internal (sync recording-ternak)](./docs/api/internal.md), [format error](./docs/api/error-response.md)
 - **Setup** — [instalasi](./docs/setup/installation.md), [environment variables](./docs/setup/environment.md), [deployment](./docs/setup/deployment.md), [troubleshooting](./docs/setup/troubleshooting.md)
 - **Frontend** — [design system](./docs/frontend/design-system.md), [komponen](./docs/frontend/components.md), [routing](./docs/frontend/routing.md), [state management](./docs/frontend/state-management.md)
 - **Backend** — [coding standards](./docs/backend/coding-standards.md), [validasi](./docs/backend/validation.md), [autentikasi](./docs/backend/authentication.md), [logging](./docs/backend/logging.md)
@@ -124,7 +138,7 @@ Belum ada test framework dikonfigurasi untuk frontend.
 
 ## Status & Roadmap
 
-Sudah berjalan: autentikasi, CRUD peternak/ternak/data master, laporan kematian & kelahiran, generate berita acara & akta (docx/pdf), dashboard ringkasan, analisis penyebab kematian & populasi wilayah — backend dan frontend sudah terintegrasi penuh.
+Sudah berjalan: autentikasi (proxy ke recording-ternak), CRUD peternak/ternak/data master, laporan kematian & kelahiran, generate berita acara & akta (docx/pdf), dashboard ringkasan, analisis penyebab kematian & populasi wilayah, sinkronisasi peternak & generate dokumen kambing dengan recording-ternak — backend dan frontend sudah terintegrasi penuh.
 
 Belum tersedia:
 

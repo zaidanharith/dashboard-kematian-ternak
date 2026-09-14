@@ -14,6 +14,8 @@ Base path: `/api/laporan-kelahiran`. Semua endpoint butuh `Authorization: Bearer
 ## `POST /api/laporan-kelahiran`
 
 > Endpoint ini **sekaligus membuat baris `Ternak` baru** — bukan hanya laporan. Ini adalah cara resmi mendaftarkan ternak baru ke sistem (bukan lewat `POST /api/ternak`).
+>
+> Juga dipanggil oleh recording-ternak (`POST /api/kelahiran/goats/:goatId/generate`) untuk kambing, setelah menerjemahkan `jenisTernakNama: "Kambing"` jadi `jenisTernakId` lewat `GET /api/jenis-ternak` — lihat [`kelahiran.md`](../../../recording-ternak/docs/api/kelahiran.md) di repo itu.
 
 **Request body**
 
@@ -34,7 +36,7 @@ Validasi & efek samping (dalam satu `$transaction`):
 1. `peternakId`, `jenisTernakId`, `kodeTernak`, `jenisKelamin`, `tanggalLahir` wajib diisi.
 2. `jenisKelamin` harus `"JANTAN"` atau `"BETINA"`.
 3. `Peternak` dan `JenisTernak` harus ada.
-4. Membuat `Ternak` baru (status default `HIDUP`) **lalu** `LaporanKelahiran` yang menunjuk ke ternak itu, dengan `petugasId` dari `req.user.id`.
+4. Membuat `Ternak` baru (status default `HIDUP`) **lalu** `LaporanKelahiran` yang menunjuk ke ternak itu, dengan `petugasId` dan `petugasNama` dari `req.user` (payload JWT — bukan relasi Prisma, karena user ada di database recording-ternak, beda database, lihat [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md)). `petugasNama` disimpan sebagai snapshot di saat laporan dibuat, dipakai untuk mengisi akta — tidak berubah kalau nama user diedit belakangan.
 
 **Response `201`**
 
@@ -50,8 +52,8 @@ Validasi & efek samping (dalam satu `$transaction`):
       "tanggalLahir": "2026-06-01",
       "catatan": "Kelahiran normal, dibantu petugas.",
       "nomorAkta": null,
-      "ternak": { "kodeTernak": "SP-002", "peternak": {}, "jenisTernak": {} },
-      "petugas": { "name": "Budi Santoso" }
+      "petugasNama": "Budi Santoso",
+      "ternak": { "kodeTernak": "SP-002", "peternak": {}, "jenisTernak": {} }
     }
   }
 }
@@ -77,10 +79,8 @@ Jika `tanggalLahir` diubah, `Ternak.tanggalLahir` yang terkait ikut di-update da
 
 Sama seperti `berita-acara` di [laporan-kematian.md](./laporan-kematian.md#get-apilaporan-kematianidberita-acara), tapi:
 
-- Template docx: `backend/src/templates/akta-kelahiran.docx` (env override: `AKTA_KELAHIRAN_TEMPLATE_NAME`).
+- Template docx: `backend/src/templates/akta-kelahiran.docx` (env override: `AKTA_KELAHIRAN_TEMPLATE_NAME`) — diadaptasi dari `berita-acara-kematian.docx` (layout, font, dan blok tanda tangan yang sama), lihat [setup/troubleshooting.md](../setup/troubleshooting.md) untuk riwayatnya.
 - Filename unduhan: `akta-kelahiran-<kodeTernak>.<ext>`.
-
-> **Catatan**: file template `akta-kelahiran.docx` **belum ada** di `backend/src/templates/` pada kode saat ini (hanya `berita-acara-kematian.docx` yang tersedia). `format=docx` untuk endpoint ini akan membalas `500` (`TEMPLATE_NOT_FOUND`) sampai template ditambahkan; `format=pdf` tetap berfungsi karena digambar langsung oleh `pdfkit`. Lihat [setup/troubleshooting.md](../setup/troubleshooting.md).
 
 ## `DELETE /api/laporan-kelahiran/:id`
 

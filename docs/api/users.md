@@ -2,12 +2,14 @@
 
 Base path: `/api/users`. Semua endpoint butuh `Authorization: Bearer <token>`.
 
+> Sejak [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md), tidak ada tabel `User` lokal — semua endpoint di sini proxy ke recording-ternak lewat `lib/recording-client.js` (`GET/PATCH /api/auth/me`, `GET/POST /api/admins`).
+
 | Method | Path | Role | Deskripsi |
 |---|---|---|---|
 | `GET` | `/api/users/me` | Siapa saja yang login | Ambil profil user yang sedang login |
 | `PATCH` | `/api/users/me` | Siapa saja yang login | Ubah nama sendiri |
 | `GET` | `/api/users` | `SUPERADMIN` | Daftar semua akun |
-| `POST` | `/api/users` | `SUPERADMIN` | Daftarkan akun `ADMIN`/`PETUGAS` baru |
+| `POST` | `/api/users` | `SUPERADMIN` | Daftarkan akun `ADMIN`/`VIEWER` baru |
 
 ## `GET /api/users/me`
 
@@ -21,9 +23,9 @@ Base path: `/api/users`. Semua endpoint butuh `Authorization: Bearer <token>`.
     "user": {
       "id": "3f1b7c2e-...",
       "name": "Budi Santoso",
-      "email": "petugas@besuki.desa.id",
+      "email": "admin@besuki.desa.id",
       "avatarUrl": null,
-      "role": "PETUGAS"
+      "role": "ADMIN"
     }
   }
 }
@@ -39,11 +41,11 @@ Base path: `/api/users`. Semua endpoint butuh `Authorization: Bearer <token>`.
 }
 ```
 
-`name` wajib diisi. Endpoint ini hanya mengubah nama — belum ada endpoint ganti password/email sendiri (lihat `CLAUDE.md` bagian *Notes for future work*).
+`name` wajib diisi. Endpoint ini hanya mengubah nama — belum ada endpoint ganti password/email sendiri.
 
 ## `GET /api/users`
 
-Role: `SUPERADMIN`. Mengembalikan seluruh akun, diurutkan `createdAt desc`.
+Role: `SUPERADMIN`. Mengembalikan seluruh akun (dari recording-ternak's `/api/admins`).
 
 **Response `200`**
 
@@ -56,9 +58,9 @@ Role: `SUPERADMIN`. Mengembalikan seluruh akun, diurutkan `createdAt desc`.
       {
         "id": "3f1b7c2e-...",
         "name": "Budi Santoso",
-        "email": "petugas@besuki.desa.id",
+        "email": "admin@besuki.desa.id",
         "avatarUrl": null,
-        "role": "PETUGAS",
+        "role": "ADMIN",
         "createdAt": "2026-05-01T02:00:00.000Z"
       }
     ]
@@ -68,7 +70,7 @@ Role: `SUPERADMIN`. Mengembalikan seluruh akun, diurutkan `createdAt desc`.
 
 ## `POST /api/users`
 
-Role: `SUPERADMIN`. Satu-satunya cara membuat akun baru — **tidak ada endpoint registrasi publik**.
+Role: `SUPERADMIN`. **Tidak ada endpoint registrasi publik.**
 
 **Request body**
 
@@ -84,8 +86,9 @@ Role: `SUPERADMIN`. Satu-satunya cara membuat akun baru — **tidak ada endpoint
 Validasi:
 
 - `name`, `email`, `password`, `role` wajib diisi.
-- `role` hanya boleh `"ADMIN"` atau `"PETUGAS"` — tidak bisa membuat akun `SUPERADMIN` lewat endpoint ini.
-- `password` minimal 8 karakter, di-hash dengan `bcryptjs` sebelum disimpan.
+- `role` hanya boleh `"ADMIN"` atau `"VIEWER"` — tidak bisa membuat akun `SUPERADMIN` lewat endpoint ini (role `PETUGAS` lama tidak ada lagi, lihat [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md)).
+- `password` minimal 8 karakter.
+- `username` untuk recording-ternak's `Admin` diturunkan otomatis dari bagian lokal email (mis. `siti@besuki.desa.id` → `siti`).
 
 **Response `201`**
 
@@ -105,4 +108,4 @@ Validasi:
 }
 ```
 
-**Response `400`** — field wajib kosong, `role` di luar `ADMIN`/`PETUGAS`, password kurang dari 8 karakter, atau email sudah terdaftar (Prisma `P2002`).
+**Response `400`/`409`** — status dan pesan diteruskan apa adanya dari recording-ternak (field wajib kosong, `role` di luar `ADMIN`/`VIEWER`, password kurang dari 8 karakter, email/username sudah terdaftar).

@@ -68,6 +68,32 @@ Dua jenis dokumen legal desa di-generate dari data laporan:
 
 Frontend tidak memanggil endpoint ini langsung dari browser. Ada Route Handler proxy (`frontend/src/app/berita-acara/[id]/route.ts`, `frontend/src/app/akta-kelahiran/[id]/route.ts`) yang menyisipkan token session di sisi server lalu men-stream buffer file ke browser sebagai attachment — sehingga token JWT tidak pernah terekspos ke JavaScript sisi klien.
 
+## Integrasi Lintas Aplikasi: recording-ternak
+
+Sejak [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md), backend ini terhubung ke aplikasi sibling **recording-ternak** (pencatatan kesehatan kambing via WhatsApp) lewat HTTP — masing-masing tetap punya database Postgres sendiri, tidak ada koneksi database bersama.
+
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (dashboard-kematian-ternak)
+    participant BE as Backend (dashboard-kematian-ternak)
+    participant RT as Backend (recording-ternak)
+
+    FE->>BE: POST /api/auth/login
+    BE->>RT: POST /api/auth/login (x-internal-key)
+    RT-->>BE: { token, admin }
+    BE-->>FE: { token, user }
+
+    Note over BE,RT: Peternak create/update/delete
+    BE->>RT: PUT/DELETE /internal/farmers/:id
+    RT->>BE: PUT/DELETE /internal/peternak/:id (arah sebaliknya)
+```
+
+Tiga hal yang melintasi batas aplikasi:
+
+1. **Users digabung** — tidak ada tabel `User` lokal lagi, `/api/auth/*` dan `/api/users/*` di sini proxy ke `/api/auth/*`/`/api/admins` milik recording-ternak. JWT tetap diverifikasi lokal (`JWT_SECRET` sama di kedua aplikasi).
+2. **Peternak ↔ Farmer sinkron dua arah** — lihat [`api/internal.md`](../api/internal.md).
+3. **Generate dokumen untuk kambing** — recording-ternak memanggil `POST /api/ternak/provision`, `POST /api/laporan-kematian`/`laporan-kelahiran`, lalu `GET .../berita-acara`/`akta` di sini — tidak ada logika baru di aplikasi ini untuk ini, endpoint yang sudah ada dipakai ulang apa adanya.
+
 ## Catatan status implementasi
 
 Beberapa fitur yang di `CLAUDE.md` masih ditandai "belum dikerjakan" (integrasi frontend ke endpoint auth/CRUD) **sudah diimplementasikan penuh** di kode saat ini — lihat `frontend/src/features/`, `frontend/src/services/`, `frontend/src/app/(dashboard)/`. Dokumen ini mengacu ke kondisi kode terkini, bukan catatan tersebut.

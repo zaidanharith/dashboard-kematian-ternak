@@ -11,7 +11,9 @@ Base path: `/api/laporan-kematian`. Semua endpoint butuh `Authorization: Bearer 
 | `PATCH` | `/api/laporan-kematian/:id` | Siapa saja yang login | Ubah laporan kematian |
 | `DELETE` | `/api/laporan-kematian/:id` | `ADMIN`, `SUPERADMIN` | Hapus laporan kematian |
 
-Setiap laporan menyertakan relasi `ternak` (dengan `peternak` dan `jenisTernak`), `penyebabKematian`, dan `petugas` (`User` pencatat) — lihat `laporanInclude` di `backend/src/controllers/laporan-kematian.controller.js`.
+Setiap laporan menyertakan relasi `ternak` (dengan `peternak` dan `jenisTernak`) dan `penyebabKematian` — lihat `laporanInclude` di `backend/src/controllers/laporan-kematian.controller.js`. `petugasId` disimpan sebagai UUID biasa, **bukan** relasi Prisma (petugas ada di database recording-ternak, beda database — lihat [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md)), jadi tidak ada objek `petugas` di response.
+
+> Endpoint ini juga dipanggil oleh recording-ternak (`POST /api/kematian/goats/:goatId/generate`) untuk kambing — lihat [`kematian.md`](../../../recording-ternak/docs/api/kematian.md) di repo itu.
 
 ## `GET /api/laporan-kematian`
 
@@ -36,8 +38,9 @@ Validasi & efek samping (dalam satu `$transaction`):
 
 1. `ternakId`, `penyebabKematianId`, `tanggalKematian` wajib diisi.
 2. `Ternak` harus ada, dan **belum berstatus `MATI`** — mencegah ternak yang sama dilaporkan mati dua kali (`400`, `"Ternak ini sudah dilaporkan mati sebelumnya."`).
-3. `PenyebabKematian` harus ada.
-4. Membuat `LaporanKematian` **dan** meng-update `Ternak.status` menjadi `MATI` dalam satu transaksi atomik.
+3. **`Ternak.jenisKelamin` dan `Ternak.tanggalLahir` harus sudah terisi** (`400`, `"Data ternak (jenis kelamin, tanggal lahir) belum lengkap. Lengkapi data ternak terlebih dahulu sebelum membuat laporan kematian."`) — sejak ADR-005, ternak yang di-provision dari recording-ternak lewat `POST /api/ternak/provision` bisa punya kedua field ini kosong; gate ini mencegah berita acara ter-generate dengan data yang salah/kosong. Lengkapi lewat `PATCH /api/ternak/:id` sebelum mencoba lagi.
+4. `PenyebabKematian` harus ada.
+5. Membuat `LaporanKematian` **dan** meng-update `Ternak.status` menjadi `MATI` dalam satu transaksi atomik.
 
 **Response `201`**
 
@@ -55,8 +58,7 @@ Validasi & efek samping (dalam satu `$transaction`):
       "catatan": "Ditemukan mati di kandang pagi hari.",
       "nomorBeritaAcara": null,
       "ternak": { "kodeTernak": "SP-001", "peternak": {}, "jenisTernak": {} },
-      "penyebabKematian": { "nama": "Penyakit" },
-      "petugas": { "name": "Budi Santoso" }
+      "penyebabKematian": { "nama": "Penyakit" }
     }
   }
 }

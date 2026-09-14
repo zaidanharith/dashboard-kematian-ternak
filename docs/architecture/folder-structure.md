@@ -22,13 +22,18 @@ backend/
       user.controller.js
     database/connections/
       prisma_client.js          # singleton Prisma Client, driver adapter @prisma/adapter-pg
+    lib/
+      recording-client.js       # fetch wrapper ke backend recording-ternak (x-internal-key)
     middlewares/
       auth.middleware.js        # verifikasi JWT dari header Authorization
-      role.middleware.js        # role gate (SUPERADMIN/ADMIN/PETUGAS)
+      role.middleware.js        # role gate (SUPERADMIN/ADMIN/VIEWER)
+      internal-key.middleware.js # cek header x-internal-key untuk endpoint /internal/*
     routes/                     # 1 file per resource + api.js sebagai aggregator/self-doc endpoint
+      internal.routes.js        # /internal/peternak/* — dipanggil recording-ternak
     services/                   # HANYA logic non-trivial (bukan wajib per resource)
       akta-kelahiran.service.js # generate docx & pdf akta kelahiran
       berita-acara.service.js   # generate docx & pdf berita acara kematian
+      recording-sync.service.js # push perubahan Peternak ke recording-ternak
     templates/
       berita-acara-kematian.docx  # template docxtemplater (akta-kelahiran.docx BELUM ada, lihat setup/troubleshooting.md)
     __tests__/                  # Jest, mirroring src/ (controllers, middlewares, services, integration)

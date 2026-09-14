@@ -2,13 +2,15 @@
 
 Daftar masalah yang diketahui dan cara mengatasinya. Tambahkan entri baru di sini setiap kali sebuah bug/kegagalan tersolusi, supaya tidak perlu didebug ulang.
 
-## `TEMPLATE_NOT_FOUND` saat unduh Akta Kelahiran (`format=docx`)
+## (Riwayat) `TEMPLATE_NOT_FOUND` saat unduh Akta Kelahiran — sudah diperbaiki
 
 **Gejala**: `GET /api/laporan-kelahiran/:id/akta` (tanpa `?format=pdf`) membalas `500` dengan `error` berisi pesan "Template akta kelahiran tidak ditemukan di ...".
 
-**Penyebab**: file `backend/src/templates/akta-kelahiran.docx` belum ada di repo — hanya `berita-acara-kematian.docx` yang tersedia (lihat `backend/src/services/akta-kelahiran.service.js`, fungsi `getTemplatePath()`).
+**Penyebab**: file `backend/src/templates/akta-kelahiran.docx` sempat tidak ada di repo — hanya `berita-acara-kematian.docx` yang tersedia sejak fitur akta kelahiran ditulis (lihat `backend/src/services/akta-kelahiran.service.js`, fungsi `getTemplatePath()`).
 
-**Solusi**: taruh file template `.docx` (format sama seperti `berita-acara-kematian.docx`, placeholder `{nama_placeholder}` yang dibaca `docxtemplater` — lihat field yang di-build di `buildAktaKelahiranData()`) di `backend/src/templates/akta-kelahiran.docx`, atau set `AKTA_KELAHIRAN_TEMPLATE_NAME` ke nama file lain di folder yang sama. `format=pdf` tidak terpengaruh masalah ini karena PDF digambar langsung oleh `pdfkit`, tidak butuh file template.
+**Status**: **sudah diperbaiki** — `backend/src/templates/akta-kelahiran.docx` sudah ditambahkan, diadaptasi dari `berita-acara-kematian.docx` (layout, font, dan blok tanda tangan yang sama, wording dan placeholder disesuaikan untuk laporan kelahiran; lihat `buildAktaKelahiranData()` untuk field-nya). `format=docx` maupun `format=pdf` sekarang sama-sama berfungsi.
+
+Kalau error ini muncul lagi, kemungkinan penyebabnya adalah `AKTA_KELAHIRAN_TEMPLATE_NAME` di-override ke nama file yang tidak ada — periksa `backend/.env`.
 
 ## Menghapus `Peternak` yang salah satu ternaknya sudah punya laporan kematian
 

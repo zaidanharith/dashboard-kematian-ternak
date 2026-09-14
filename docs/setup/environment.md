@@ -10,14 +10,15 @@ Jangan pernah commit `.env`/`.env.local` yang berisi kredensial asli — lihat `
 | `DATABASE_URL` | Ya | Connection string PostgreSQL Supabase (**pooled**), dipakai `PrismaPg` adapter saat runtime (`src/database/connections/prisma_client.js`) |
 | `DIRECT_URL` | Ya | Connection string PostgreSQL **langsung** (bukan pooled), dipakai Prisma CLI (`db push`/`generate`) lewat `prisma.config.js` |
 | `DB_PASSWORD` | Tidak dipakai kode | Ada di `.env.example` untuk referensi ops (mis. login ke dashboard Supabase) — tidak dibaca `process.env` di manapun pada kode saat ini |
-| `JWT_SECRET` | Ya (production) | Secret untuk menandatangani JWT. Ada fallback dev-only di kode (`fallback_secret_for_development`) — **jangan andalkan di production** |
-| `GOOGLE_CLIENT_ID` | Ya (untuk login Google) | Dipakai backend sebagai `audience` saat memverifikasi ID Token (`google-auth-library`) |
+| `JWT_SECRET` | Ya (production) | Secret untuk **verifikasi** JWT lokal (token ditandatangani recording-ternak) — **harus sama persis** dengan `JWT_SECRET` recording-ternak. Ada fallback dev-only di kode (`fallback_secret_for_development`) — jangan andalkan di production |
+| `RECORDING_TERNAK_API_URL` | Ya | Base URL backend recording-ternak — dipakai untuk proxy auth/user (`lib/recording-client.js`) sejak [ADR-005](../decisions/adr-005-integration-with-recording-ternak.md) |
+| `INTERNAL_API_KEY` | Ya | Secret bersama untuk komunikasi antar backend (header `x-internal-key`) — **harus sama persis** dengan `INTERNAL_API_KEY` recording-ternak |
+| `GOOGLE_CLIENT_ID` *(backend, sudah tidak dipakai)* | Tidak | Verifikasi Google ID Token sekarang terjadi di recording-ternak, bukan di sini — variabel ini boleh dihapus dari `.env` backend. `NEXT_PUBLIC_GOOGLE_CLIENT_ID` di frontend tetap dipakai (lihat di bawah), dan nilainya harus terdaftar sebagai `DASHBOARD_GOOGLE_CLIENT_ID` di recording-ternak |
 | `GOOGLE_SECRET` | Tidak dipakai kode | Ada di `.env.example`, tapi flow login Google yang dipakai proyek ini murni verifikasi ID Token — Client Secret tidak diperlukan backend |
 | `SUPABASE_EMAIL` | Tidak dipakai kode | Ada di `.env.example` untuk referensi ops — tidak dibaca `process.env` di manapun pada kode saat ini |
-| `SUPERADMIN_EMAIL` | Ya (untuk seed) | Dipakai `prisma/seed.js` untuk bootstrap akun `SUPERADMIN` pertama |
-| `SUPERADMIN_PASSWORD` | Ya (untuk seed) | Password akun `SUPERADMIN` pertama (di-hash sebelum disimpan) |
+| `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` *(sudah tidak dipakai)* | Tidak | `prisma/seed.js` tidak lagi bootstrap akun `SUPERADMIN` di sini — akun SUPERADMIN dikelola di database recording-ternak (model `Admin`). Variabel ini boleh dihapus |
 | `BERITA_ACARA_TEMPLATE_NAME` | Tidak (default `berita-acara-kematian.docx`) | Override nama file template DOCX berita acara kematian di `src/templates/` |
-| `AKTA_KELAHIRAN_TEMPLATE_NAME` | Tidak (default `akta-kelahiran.docx`) | Override nama file template DOCX akta kelahiran di `src/templates/` — **file default belum tersedia di repo**, lihat [troubleshooting.md](./troubleshooting.md) |
+| `AKTA_KELAHIRAN_TEMPLATE_NAME` | Tidak (default `akta-kelahiran.docx`) | Override nama file template DOCX akta kelahiran di `src/templates/` |
 | `NODE_ENV` | Tidak | `production` mengubah strategi instansiasi Prisma Client (tanpa `global` caching) — lihat `src/database/connections/prisma_client.js` |
 
 ## Frontend (`frontend/.env.local`, contoh: `frontend/.env.example`)

@@ -15,7 +15,7 @@ if (!nama || !nik || !telepon || !desa || !dusun || !rt || !rw) {
 
 ## Dua lapis validasi
 
-1. **Validasi keberadaan field & format sederhana** — manual, di controller. Contoh: field wajib tidak boleh kosong, enum (`jenisKelamin` harus `JANTAN`/`BETINA`, `role` saat registrasi harus `ADMIN`/`PETUGAS`), panjang minimum (`password` ≥ 8 karakter).
+1. **Validasi keberadaan field & format sederhana** — manual, di controller. Contoh: field wajib tidak boleh kosong, enum (`jenisKelamin` harus `JANTAN`/`BETINA`, `role` saat registrasi harus `ADMIN`/`VIEWER`), panjang minimum (`password` ≥ 8 karakter).
 2. **Validasi integritas relasi & constraint database** — dua cara:
    - **Dicek eksplisit sebelum query** ketika pesan error yang jelas penting untuk UX (mis. `createTernak` mengecek `peternakId`/`jenisTernakId` ada sebelum insert, `createLaporanKematian` mengecek `Ternak` belum berstatus `MATI`).
    - **Ditangkap dari kode error Prisma** setelah query gagal, untuk constraint yang lebih murah dibiarkan database yang menegakkan: unique (`P2002`), record tidak ditemukan saat update/delete (`P2025`), foreign key (`P2003`). Lihat [api/error-response.md](../api/error-response.md#pemetaan-kode-error-prisma--http).
@@ -25,7 +25,7 @@ if (!nama || !nik || !telepon || !desa || !dusun || !rt || !rw) {
 | Aturan | Lokasi | Efek jika dilanggar |
 |---|---|---|
 | Ternak yang sudah `MATI` tidak bisa dilaporkan mati lagi | `laporan-kematian.controller.js` → `createLaporanKematian` | `400` |
-| `role` saat registrasi user hanya boleh `ADMIN`/`PETUGAS` (tidak bisa buat `SUPERADMIN` baru) | `user.controller.js` → `registerUser` | `400` |
+| `role` saat registrasi user hanya boleh `ADMIN`/`VIEWER` (tidak bisa buat `SUPERADMIN` baru) | `user.controller.js` → `registerUser` | `400` |
 | `password` minimal 8 karakter | `user.controller.js` → `registerUser` | `400` |
 | Email Google harus terverifikasi (`email_verified`) | `auth.controller.js` → `googleSignIn` | `400` |
 
